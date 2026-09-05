@@ -108,10 +108,10 @@ def download_audio_only(info, audio_format):
 
     start_progress()
 
-    video_task_id = add_progress_task(f"{title} | Video", total=audio_size)
+    audio_task_id = add_progress_task(f"{title} | Audio", total=audio_size)
 
     task_map = {
-        format_id: video_task_id,
+        format_id: audio_task_id,
     }
 
     options["progress_hooks"] = [
