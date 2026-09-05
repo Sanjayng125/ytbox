@@ -8,11 +8,6 @@ import subprocess
 import sys
 from packaging.version import Version
 import json
-from ui import (
-    show_info,
-    show_success,
-    show_error
-)
 
 SYSTEM = platform.system()
 ARCH = platform.machine()
@@ -394,4 +389,10 @@ def update_deno():
     finally:
         if zip_path.exists():
             zip_path.unlink()
-            
+
+# to prevent circular import error
+from ui import (
+    show_info,
+    show_success,
+    show_error
+)
