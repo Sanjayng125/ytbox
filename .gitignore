@@ -1,3 +1,4 @@
+build/
 .venv/
 bin/
 downloads/
@@ -5,3 +6,4 @@ __pycache__/
 history.json
 project_dump.txt
 config.json
+ytbox.egg-info

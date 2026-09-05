@@ -79,10 +79,21 @@ def interactive_mode():
             show_info("\nGoodbye!")
             break
 
-if __name__ == "__main__":
+def cli_entry():
     args = parse_arguments()
 
     if args.command == "update":
         update()
     else:
         interactive_mode()
+
+if __name__ == "__main__":
+    cli_entry()
+
+# if __name__ == "__main__":
+#     args = parse_arguments()
+
+#     if args.command == "update":
+#         update()
+#     else:
+#         interactive_mode()

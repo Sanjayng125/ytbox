@@ -1,0 +1,34 @@
+[project]
+name = "ytbox"
+version = "1.0.0"
+description = "A friendly yt-dlp wrapper."
+requires-python = ">=3.10"
+dependencies = [
+    "yt-dlp",
+    "rich",
+    "packaging",
+]
+
+[project.scripts]
+ytbox = "main:cli_entry"
+
+[tool.setuptools]
+py-modules = [
+    "main",
+    "application",
+    "audio_downloader",
+    "config",
+    "dependencies",
+    "downloader",
+    "history",
+    "playlist",
+    "playlist_downloader",
+    "ui",
+    "utils",
+    "video",
+    "video_downloader",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
