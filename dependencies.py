@@ -3,9 +3,11 @@ import shutil
 import urllib.request
 import urllib.error
 import zipfile
+import tarfile
 import platform
 import subprocess
 import sys
+import stat
 from packaging.version import Version
 import json
 
@@ -36,9 +38,38 @@ if SYSTEM == "Windows":
 
     FFMPEG_PATH = BIN_DIR / "ffmpeg.exe"
     DENO_PATH = BIN_DIR / "deno.exe"
+    FFMPEG_ARCHIVE_FORMAT = "zip"
 
 elif SYSTEM == "Linux":
-    raise RuntimeError("Linux support is not implemented yet.")
+
+    if ARCH in ("x86_64", "AMD64"):
+        FFMPEG_URL = (
+            "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/"
+            "ffmpeg-master-latest-linux64-gpl.tar.xz"
+        )
+
+        DENO_URL = (
+            "https://github.com/denoland/deno/releases/latest/download/"
+            "deno-x86_64-unknown-linux-gnu.zip"
+        )
+
+    elif ARCH in ("aarch64", "arm64", "ARM64"):
+        FFMPEG_URL = (
+            "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/"
+            "ffmpeg-master-latest-linuxarm64-gpl.tar.xz"
+        )
+
+        DENO_URL = (
+            "https://github.com/denoland/deno/releases/latest/download/"
+            "deno-aarch64-unknown-linux-gnu.zip"
+        )
+
+    else:
+        raise RuntimeError(f"Unsupported Linux architecture: {ARCH}")
+
+    FFMPEG_PATH = BIN_DIR / "ffmpeg"
+    DENO_PATH = BIN_DIR / "deno"
+    FFMPEG_ARCHIVE_FORMAT = "tar.xz"
 
 elif SYSTEM == "Darwin":
     raise RuntimeError("macOS support is not implemented yet.")
@@ -46,6 +77,91 @@ elif SYSTEM == "Darwin":
 else:
     raise RuntimeError(f"Unsupported operating system: {SYSTEM}")
 
+
+def _make_executable(path):
+    if SYSTEM == "Windows":
+        return
+
+    current_mode = path.stat().st_mode
+    path.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
+def _extract_ffmpeg_binary(archive_path, destination_path):
+    if FFMPEG_ARCHIVE_FORMAT == "zip":
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            for file in archive.namelist():
+                if file.endswith("/bin/ffmpeg.exe") or file.endswith("/bin/ffmpeg"):
+                    with archive.open(file) as source:
+                        with open(destination_path, "wb") as target:
+                            target.write(source.read())
+                    break
+
+    elif FFMPEG_ARCHIVE_FORMAT == "tar.xz":
+        with tarfile.open(archive_path, "r:xz") as archive:
+            for member in archive.getmembers():
+                if member.name.endswith("/bin/ffmpeg"):
+                    source = archive.extractfile(member)
+
+                    if source is None:
+                        continue
+
+                    with open(destination_path, "wb") as target:
+                        target.write(source.read())
+                    break
+
+    else:
+        raise RuntimeError(f"Unsupported FFmpeg archive format: {FFMPEG_ARCHIVE_FORMAT}")
+
+    _make_executable(destination_path)
+
+
+def check_dependencies():
+    ffmpeg = get_ffmpeg_path()
+    deno = get_deno_path()
+
+    return {
+        "ffmpeg": ffmpeg,
+        "deno": deno
+    }
+
+def ensure_dependencies():
+    dependencies = check_dependencies()
+
+    installers = {
+        "ffmpeg": install_ffmpeg,
+        "deno": install_deno
+    }
+
+    try:
+        for name, path in dependencies.items():
+            if path is None:
+                show_error(f"{name.upper()} not found.")
+                dependencies[name] = installers[name]()
+
+    except KeyboardInterrupt:
+        for file in (BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}", BIN_DIR / "deno.zip"):
+            if file.exists():
+                try:
+                    file.unlink()
+                except OSError:
+                    pass
+
+        show_info("\nDependency installation cancelled.")
+        raise SystemExit
+
+    except (urllib.error.URLError, OSError, zipfile.BadZipFile, tarfile.TarError) as e:
+        for file in (BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}", BIN_DIR / "deno.zip"):
+            if file.exists():
+                try:
+                    file.unlink()
+                except OSError:
+                    pass
+
+        print()
+        show_error(f"Dependency installation failed: {e}")
+        raise SystemExit
+
+    return dependencies
 
 def get_ffmpeg_path():
     if FFMPEG_PATH.exists():
@@ -62,26 +178,20 @@ def get_ffmpeg_path():
 def install_ffmpeg():
     BIN_DIR.mkdir(exist_ok=True)
 
-    zip_path = BIN_DIR / "ffmpeg.zip"
+    archive_path = BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}"
 
     show_info("Downloading FFmpeg...")
 
-    urllib.request.urlretrieve(FFMPEG_URL, zip_path)
+    urllib.request.urlretrieve(FFMPEG_URL, archive_path)
 
     show_info("Extracting FFmpeg...")
 
-    with zipfile.ZipFile(zip_path, "r") as archive:
-        for file in archive.namelist():
-            if file.endswith("/bin/ffmpeg.exe"):
-                with archive.open(file) as source:
-                    with open(FFMPEG_PATH, "wb") as target:
-                        target.write(source.read())
-                break
+    _extract_ffmpeg_binary(archive_path, FFMPEG_PATH)
 
-    zip_path.unlink()
+    archive_path.unlink()
 
     if not FFMPEG_PATH.exists():
-        raise RuntimeError("Could not find ffmpeg.exe in the downloaded archive.")
+        raise RuntimeError("Could not find the ffmpeg binary in the downloaded archive.")
 
     show_success("FFmpeg installed successfully.")
 
@@ -110,68 +220,20 @@ def install_deno():
     show_info("Extracting Deno...")
 
     with zipfile.ZipFile(zip_path, "r") as archive:
-        with archive.open("deno.exe") as source:
-            with open(BIN_DIR / "deno.exe", "wb") as target:
+        with archive.open(DENO_PATH.name) as source:
+            with open(DENO_PATH, "wb") as target:
                 target.write(source.read())
 
     zip_path.unlink()
 
-    deno_path = BIN_DIR / "deno.exe"
+    _make_executable(DENO_PATH)
 
-    if not deno_path.exists():
-        raise RuntimeError("Could not find deno.exe in the downloaded archive.")
+    if not DENO_PATH.exists():
+        raise RuntimeError("Could not find the deno binary in the downloaded archive.")
 
     show_success("Deno installed successfully.")
 
-    return deno_path
-
-def check_dependencies():
-    ffmpeg = get_ffmpeg_path()
-    deno = get_deno_path()
-
-    return {
-        "ffmpeg": ffmpeg,
-        "deno": deno
-    }
-    
-def ensure_dependencies():
-    dependencies = check_dependencies()
-
-    installers = {
-        "ffmpeg": install_ffmpeg,
-        "deno": install_deno
-    }
-
-    try:
-        for name, path in dependencies.items():
-            if path is None:
-                show_error(f"{name.upper()} not found.")
-                dependencies[name] = installers[name]()
-
-    except KeyboardInterrupt:
-        for file in (BIN_DIR / "ffmpeg.zip", BIN_DIR / "deno.zip"):
-            if file.exists():
-                try:
-                    file.unlink()
-                except OSError:
-                    pass
-
-        show_info("\nDependency installation cancelled.")
-        raise SystemExit
-
-    except (urllib.error.URLError, OSError, zipfile.BadZipFile) as e:
-        for file in (BIN_DIR / "ffmpeg.zip", BIN_DIR / "deno.zip"):
-            if file.exists():
-                try:
-                    file.unlink()
-                except OSError:
-                    pass
-
-        print()
-        show_error(f"Dependency installation failed: {e}")
-        raise SystemExit
-
-    return dependencies
+    return DENO_PATH
 
 # ------------------------------------------------- Update -------------------------------------------------
 
@@ -291,22 +353,16 @@ def is_ffmpeg_update_available(installed=None, latest=None):
 def update_ffmpeg():
     BIN_DIR.mkdir(exist_ok=True)
 
-    zip_path = BIN_DIR / "ffmpeg.zip"
+    archive_path = BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}"
 
     try:
         show_info("Downloading FFmpeg...")
 
-        urllib.request.urlretrieve(FFMPEG_URL, zip_path)
+        urllib.request.urlretrieve(FFMPEG_URL, archive_path)
 
         show_info("Extracting FFmpeg...")
 
-        with zipfile.ZipFile(zip_path, "r") as archive:
-            for file in archive.namelist():
-                if file.endswith("/bin/ffmpeg.exe"):
-                    with archive.open(file) as source:
-                        with open(FFMPEG_PATH, "wb") as target:
-                            target.write(source.read())
-                    break
+        _extract_ffmpeg_binary(archive_path, FFMPEG_PATH)
 
         if not FFMPEG_PATH.exists():
             return False
@@ -314,8 +370,8 @@ def update_ffmpeg():
         return True
 
     finally:
-        if zip_path.exists():
-            zip_path.unlink()
+        if archive_path.exists():
+            archive_path.unlink()
 
 
 # ------------------------------------------------- deno -------------------------------------------------            
@@ -380,9 +436,11 @@ def update_deno():
         show_info("Extracting Deno...")
 
         with zipfile.ZipFile(zip_path, "r") as archive:
-            with archive.open("deno.exe") as source:
+            with archive.open(DENO_PATH.name) as source:
                 with open(DENO_PATH, "wb") as target:
                     target.write(source.read())
+
+        _make_executable(DENO_PATH)
 
         return DENO_PATH.exists()
 

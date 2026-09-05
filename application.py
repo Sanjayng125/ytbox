@@ -95,10 +95,7 @@ def update():
 
         if installed_ytdlp and latest_ytdlp:
             if ytdlp_update:
-                show_info(
-                    f"yt-dlp:  Update available "
-                    f"({installed_ytdlp} -> {latest_ytdlp})"
-                )
+                show_info(f"yt-dlp:  Update available ({installed_ytdlp} -> {latest_ytdlp})")
             else:
                 show_success(f"yt-dlp:  Up to date ({installed_ytdlp})")
         else:
@@ -108,10 +105,7 @@ def update():
             latest_ffmpeg_date = latest_ffmpeg[:10].replace("-", "")
 
             if ffmpeg_update:
-                show_info(
-                    f"FFmpeg:  Update available "
-                    f"({installed_ffmpeg} -> {latest_ffmpeg_date})"
-                )
+                show_info(f"FFmpeg:  Update available ({installed_ffmpeg} -> {latest_ffmpeg_date})")
             else:
                 show_success(f"FFmpeg:  Up to date ({installed_ffmpeg})")
         else:
@@ -121,10 +115,7 @@ def update():
             latest_deno_version = latest_deno.lstrip("v")
 
             if deno_update:
-                show_info(
-                    f"Deno:    Update available "
-                    f"({installed_deno} -> {latest_deno_version})"
-                )
+                show_info(f"Deno:    Update available ({installed_deno} -> {latest_deno_version})")
             else:
                 show_success(f"Deno:    Up to date ({installed_deno})")
         else:

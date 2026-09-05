@@ -199,7 +199,7 @@ def download_video(info, video_format, audio_format):
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            show_info("Selected format:", options["format"])
+            show_info(f"Selected format: {options["format"]}")
 
             try:
                 ydl.download([info["webpage_url"]])

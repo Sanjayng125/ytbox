@@ -102,7 +102,7 @@ def download_video_menu():
 
         print()
         show_success("Download complete!")
-        show_success("Saved to:", output_path)
+        show_success(f"Saved to: {output_path}")
 
     except KeyboardInterrupt:
         cleanup_partial_downloads()
