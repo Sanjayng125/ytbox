@@ -70,16 +70,24 @@ def show_quality_menu(qualities):
     table.add_column("Format")
     table.add_column("Resolution")
     table.add_column("FPS")
+    table.add_column("Progress")
 
     for index, item in enumerate(qualities, start=1):
         format_info = item["format"]
+
+        progress_note = (
+            "[yellow]no live progress bar[/yellow]"
+            if format_info.get("is_hls")
+            else "[green]✓[/green]"
+        )
 
         table.add_row(
             str(index),
             f"{item['quality']}p",
             format_info["ext"].upper(),
             f"{format_info['width']}x{format_info['height']}",
-            f"{format_info['fps']}fps"
+            f"{format_info['fps']}fps",
+            progress_note
         )
 
     console.print(table)

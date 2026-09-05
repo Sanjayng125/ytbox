@@ -91,9 +91,6 @@ def download_playlist(url, quality=None, info=None):
 
     options = get_ytdlp_options()
 
-    # CHANGED: use a dynamic hook (own private task_map) instead of the
-    # size-known single-video progress_hook — playlist entries aren't known
-    # ahead of time so tasks have to be created lazily, on first sight.
     options["progress_hooks"] = [make_playlist_progress_hook()]
 
     if quality:
@@ -109,7 +106,7 @@ def download_playlist(url, quality=None, info=None):
         playlist_dir / "%(playlist_index)02d-%(title)s-[%(id)s].%(ext)s"
     )
 
-    start_progress()  # CHANGED: was missing — no bars were ever shown before
+    start_progress()
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -130,8 +127,8 @@ def download_playlist(url, quality=None, info=None):
         )
 
     finally:
-        stop_progress()   # CHANGED
-        reset_progress()  # CHANGED
+        stop_progress()
+        reset_progress()
 
 
 def download_playlist_audio(url, quality=None, info=None):
@@ -146,7 +143,7 @@ def download_playlist_audio(url, quality=None, info=None):
 
     options = get_ytdlp_options()
 
-    options["progress_hooks"] = [make_playlist_progress_hook()]  # CHANGED
+    options["progress_hooks"] = [make_playlist_progress_hook()]
 
     options["format"] = "bestaudio/best"
     options["outtmpl"] = str(
@@ -161,7 +158,7 @@ def download_playlist_audio(url, quality=None, info=None):
         }
     ]
 
-    start_progress()  # CHANGED: was missing
+    start_progress()
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -182,8 +179,8 @@ def download_playlist_audio(url, quality=None, info=None):
         )
 
     finally:
-        stop_progress()   # CHANGED
-        reset_progress()  # CHANGED
+        stop_progress()
+        reset_progress()
 
         
 # if __name__ == "__main__":

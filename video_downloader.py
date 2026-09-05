@@ -43,6 +43,8 @@ def get_video_qualities(info):
         if height is None:
             continue
 
+        is_hls = "m3u8" in (format.get("protocol") or "")
+
         qualities.append({
             "format_id": format.get("format_id"),
             "height": height,
@@ -51,7 +53,8 @@ def get_video_qualities(info):
             "fps": format.get("fps"),
             "vcodec": format.get("vcodec"),
             "filesize": format.get("filesize"),
-            "filesize_approx": format.get("filesize_approx")
+            "filesize_approx": format.get("filesize_approx"),
+            "is_hls": is_hls,
         })
 
     return qualities
