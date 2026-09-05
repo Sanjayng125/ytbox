@@ -17,7 +17,11 @@ from audio_downloader import (
     get_available_audio,
     download_audio_only
 )
-from ui import show_video_information_panel
+from ui import (
+    show_video_information_panel,
+    show_info,
+    show_success
+)
 
 def show_video_information():
     try:
@@ -39,7 +43,7 @@ def show_video_information():
         )
 
     except KeyboardInterrupt:
-        print("\nCancelled.")
+        show_info("\nCancelled.")
         return
 
 def download_video_menu():
@@ -47,7 +51,7 @@ def download_video_menu():
         url = input("Enter YouTube URL: ")
 
         try:
-            print("Extracting Video Information...")
+            show_info("Extracting Video Information...")
             info = get_video_info(url)
         except RuntimeError as e:
             print()
@@ -64,7 +68,7 @@ def download_video_menu():
             audio_format = choose_audio(audio_formats)
 
             print()
-            print("Downloading...")
+            show_info("Downloading...")
 
             output_path = download_video(
                 info,
@@ -77,7 +81,7 @@ def download_video_menu():
             video_format = choose_quality(qualities)
 
             print()
-            print("Downloading...")
+            show_info("Downloading...")
 
             output_path = download_video_only(
                 info,
@@ -89,7 +93,7 @@ def download_video_menu():
             audio_format = choose_audio(audio_formats)
 
             print()
-            print("Downloading...")
+            show_info("Downloading...")
 
             output_path = download_audio_only(
                 info,
@@ -97,12 +101,12 @@ def download_video_menu():
             )
 
         print()
-        print("Download complete!")
-        print("Saved to:", output_path)
+        show_success("Download complete!")
+        show_success("Saved to:", output_path)
 
     except KeyboardInterrupt:
         cleanup_partial_downloads()
-        print("\nDownload cancelled.")
+        show_info("\nDownload cancelled.")
         return
 
     except RuntimeError as e:

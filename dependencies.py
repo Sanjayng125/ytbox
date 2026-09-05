@@ -8,6 +8,11 @@ import subprocess
 import sys
 from packaging.version import Version
 import json
+from ui import (
+    show_info,
+    show_success,
+    show_error
+)
 
 SYSTEM = platform.system()
 ARCH = platform.machine()
@@ -64,11 +69,11 @@ def install_ffmpeg():
 
     zip_path = BIN_DIR / "ffmpeg.zip"
 
-    print("Downloading FFmpeg...")
+    show_info("Downloading FFmpeg...")
 
     urllib.request.urlretrieve(FFMPEG_URL, zip_path)
 
-    print("Extracting FFmpeg...")
+    show_info("Extracting FFmpeg...")
 
     with zipfile.ZipFile(zip_path, "r") as archive:
         for file in archive.namelist():
@@ -83,7 +88,7 @@ def install_ffmpeg():
     if not FFMPEG_PATH.exists():
         raise RuntimeError("Could not find ffmpeg.exe in the downloaded archive.")
 
-    print("FFmpeg installed successfully.")
+    show_success("FFmpeg installed successfully.")
 
     return FFMPEG_PATH
 
@@ -103,11 +108,11 @@ def install_deno():
 
     zip_path = BIN_DIR / "deno.zip"
 
-    print("Downloading Deno...")
+    show_info("Downloading Deno...")
 
     urllib.request.urlretrieve(DENO_URL, zip_path)
 
-    print("Extracting Deno...")
+    show_info("Extracting Deno...")
 
     with zipfile.ZipFile(zip_path, "r") as archive:
         with archive.open("deno.exe") as source:
@@ -121,7 +126,7 @@ def install_deno():
     if not deno_path.exists():
         raise RuntimeError("Could not find deno.exe in the downloaded archive.")
 
-    print("Deno installed successfully.")
+    show_success("Deno installed successfully.")
 
     return deno_path
 
@@ -145,7 +150,7 @@ def ensure_dependencies():
     try:
         for name, path in dependencies.items():
             if path is None:
-                print(f"{name.upper()} not found.")
+                show_error(f"{name.upper()} not found.")
                 dependencies[name] = installers[name]()
 
     except KeyboardInterrupt:
@@ -156,7 +161,7 @@ def ensure_dependencies():
                 except OSError:
                     pass
 
-        print("\nDependency installation cancelled.")
+        show_info("\nDependency installation cancelled.")
         raise SystemExit
 
     except (urllib.error.URLError, OSError, zipfile.BadZipFile) as e:
@@ -168,7 +173,7 @@ def ensure_dependencies():
                     pass
 
         print()
-        print(f"Dependency installation failed: {e}")
+        show_error(f"Dependency installation failed: {e}")
         raise SystemExit
 
     return dependencies
@@ -187,7 +192,7 @@ def get_ytdlp_version():
 
         return result.stdout.strip()
     except (subprocess.SubprocessError, OSError):
-        print("yt-dlp version fetch failed!.")
+        show_error("yt-dlp version fetch failed!.")
         return None
 
 def get_latest_ytdlp_version():
@@ -294,11 +299,11 @@ def update_ffmpeg():
     zip_path = BIN_DIR / "ffmpeg.zip"
 
     try:
-        print("Downloading FFmpeg...")
+        show_info("Downloading FFmpeg...")
 
         urllib.request.urlretrieve(FFMPEG_URL, zip_path)
 
-        print("Extracting FFmpeg...")
+        show_info("Extracting FFmpeg...")
 
         with zipfile.ZipFile(zip_path, "r") as archive:
             for file in archive.namelist():
@@ -373,11 +378,11 @@ def update_deno():
     zip_path = BIN_DIR / "deno.zip"
 
     try:
-        print("Downloading Deno...")
+        show_info("Downloading Deno...")
 
         urllib.request.urlretrieve(DENO_URL, zip_path)
 
-        print("Extracting Deno...")
+        show_info("Extracting Deno...")
 
         with zipfile.ZipFile(zip_path, "r") as archive:
             with archive.open("deno.exe") as source:

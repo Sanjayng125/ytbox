@@ -41,7 +41,7 @@ def settings():
                 ).strip()
 
                 if not new_path:
-                    print("Location unchanged.")
+                    show_info("Location unchanged.")
                     continue
 
                 try:
@@ -58,10 +58,10 @@ def settings():
                 return
 
             else:
-                print("Invalid choice. Try again.")
+                show_error("Invalid choice. Try again.")
 
     except KeyboardInterrupt:
-        print("\nCancelled.")
+        show_info("\nCancelled.")
         return
 
 def update():
@@ -173,5 +173,5 @@ def update():
         show_success("Update successful.")
 
     except KeyboardInterrupt:
-        print("\nUpdate cancelled.")
+        show_info("\nUpdate cancelled.")
         return

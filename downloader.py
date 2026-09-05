@@ -1,6 +1,8 @@
-from dependencies import get_ffmpeg_path
 import config
-from ui import show_download_mode_menu
+from ui import (
+    show_download_mode_menu,
+    show_error
+)
 
 def choose_download_mode():
     show_download_mode_menu()
@@ -11,7 +13,7 @@ def choose_download_mode():
         if choice in ("1", "2", "3"):
             return choice
 
-        print("Invalid choice. Try again.")
+        show_error("Invalid choice. Try again.")
         
 
 def cleanup_partial_downloads():

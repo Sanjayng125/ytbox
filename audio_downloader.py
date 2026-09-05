@@ -11,7 +11,10 @@ from utils import (
 )
 from pathlib import Path
 from history import save_download
-from ui import show_audio_menu
+from ui import (
+    show_audio_menu,
+    show_error
+)
 
 def get_audio_formats(info):
     formats = []
@@ -89,7 +92,7 @@ def choose_audio(audio_formats):
             if 1 <= choice <= len(audio_formats):
                 return audio_formats[choice - 1]["format"]
 
-        print("Invalid choice. Try again.")
+        show_error("Invalid choice. Try again.")
         
 # ------------------------------------------------ Downloads ------------------------------------------------
 

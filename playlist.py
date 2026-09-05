@@ -11,14 +11,16 @@ from ui import (
     show_playlist_information_panel,
     show_playlist_download_info,
     show_playlist_download_options,
-    show_playlist_quality_options
+    show_playlist_quality_options,
+    show_error,
+    show_info,
 )
 
 def show_playlist_information():
     url = input("Enter playlist URL: ").strip()
 
     if not url:
-        print("Please enter a playlist URL.")
+        show_info("Please enter a playlist URL.")
         return
 
     try:
@@ -48,11 +50,11 @@ def download_playlist_menu():
     url = input("Enter playlist URL: ").strip()
 
     if not url:
-        print("Please enter a playlist URL.")
+        show_info("Please enter a playlist URL.")
         return
 
     try:
-        print("Extracting Playlist Information...")
+        show_info("Extracting Playlist Information...")
         info = get_playlist_info(url)
 
         title = info.get("title", "Unknown")
@@ -77,7 +79,7 @@ def download_playlist_menu():
                     download_playlist(url, info=info)
                 except KeyboardInterrupt:
                     cleanup_partial_downloads()
-                    print("\nDownload cancelled.")
+                    show_info("\nDownload cancelled.")
                     return
 
             elif quality_choice == "2":
@@ -90,14 +92,14 @@ def download_playlist_menu():
                     download_playlist(url, quality, info)
                 except KeyboardInterrupt:
                     cleanup_partial_downloads()
-                    print("\nDownload cancelled.")
+                    show_info("\nDownload cancelled.")
                     return
 
             elif quality_choice == "3":
                 return
 
             else:
-                print("Invalid option.")
+                show_error("Invalid option.")
                 return
 
         elif choice == "2":
@@ -110,7 +112,7 @@ def download_playlist_menu():
                     download_playlist_audio(url, info=info)
                 except KeyboardInterrupt:
                     cleanup_partial_downloads()
-                    print("\nDownload cancelled.")
+                    show_info("\nDownload cancelled.")
                     return
 
             elif quality_choice == "2":
@@ -123,18 +125,18 @@ def download_playlist_menu():
                     download_playlist_audio(url, quality, info)
                 except KeyboardInterrupt:
                     cleanup_partial_downloads()
-                    print("\nDownload cancelled.")
+                    show_info("\nDownload cancelled.")
                     return
 
             elif quality_choice == "3":
                 return
 
             else:
-                print("Invalid option.")
+                show_info("Invalid option.")
                 return
 
         else:
-            print("Invalid option.")
+            show_info("Invalid option.")
             return
 
     except RuntimeError as e:

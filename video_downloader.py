@@ -12,7 +12,11 @@ from utils import (
 )
 from pathlib import Path
 from history import save_download
-from ui import show_quality_menu
+from ui import (
+    show_quality_menu,
+    show_info,
+    show_error
+)
 
 def get_video_info(url):
     options = {
@@ -150,7 +154,7 @@ def choose_quality(qualities):
             if 1 <= choice <= len(qualities):
                 return qualities[choice - 1]["format"]
 
-        print("Invalid choice. Try again.")
+        show_error("Invalid choice. Try again.")
         
 # ------------------------------------------------ Downloads ------------------------------------------------
 
@@ -195,7 +199,7 @@ def download_video(info, video_format, audio_format):
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            print("Selected format:", options["format"])
+            show_info("Selected format:", options["format"])
 
             try:
                 ydl.download([info["webpage_url"]])

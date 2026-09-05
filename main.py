@@ -14,6 +14,10 @@ from application import (
 )
 from history import show_history
 import argparse
+from ui import (
+    show_info,
+    show_error
+)
 
 try:
     ensure_dependencies()
@@ -65,14 +69,14 @@ def interactive_mode():
                 show_history()
 
             elif choice == "8":
-                print("Goodbye!")
+                show_info("Goodbye!")
                 break
 
             else:
-                print("Invalid option. Try again.")
+                show_error("Invalid option. Try again.")
 
         except KeyboardInterrupt:
-            print("\nGoodbye!")
+            show_info("\nGoodbye!")
             break
 
 if __name__ == "__main__":

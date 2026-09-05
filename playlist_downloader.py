@@ -10,7 +10,8 @@ from utils import (
 from history import save_download
 from ui import (
     show_playlist_quality_menu,
-    show_playlist_audio_quality_menu
+    show_playlist_audio_quality_menu,
+    show_error
 )
 
 def is_playlist(info):
@@ -56,7 +57,7 @@ def choose_playlist_quality():
         if choice in choices:
             return choices[choice]
 
-        print("Invalid option. Try again.")
+        show_error("Invalid option. Try again.")
         
 def choose_playlist_audio_quality():
     show_playlist_audio_quality_menu()
@@ -78,7 +79,7 @@ def choose_playlist_audio_quality():
         if choice in choices:
             return choices[choice]
 
-        print("Invalid option. Try again.")
+        show_error("Invalid option. Try again.")
 
 def download_playlist(url, quality=None, info=None):
     if info is None:
