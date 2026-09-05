@@ -5,7 +5,6 @@ from utils import format_number, format_duration, format_date, format_live_statu
 
 console = Console()
 
-
 def show_main_menu():
     menu = (
         "[bold cyan]1.[/bold cyan] Download video\n"
@@ -332,4 +331,55 @@ def show_playlist_quality_options(mode):
     table.add_row("3", "Cancel")
 
     console.print(table)
+
+def show_history_table(history):
+    if not history:
+        console.print(
+            Panel(
+                "No download history.",
+                title="[bold green]Download History[/bold green]",
+                border_style="cyan",
+                expand=False
+            )
+        )
+        return
+
+    table = Table(
+        title="Download History",
+        border_style="cyan",
+        show_lines=True
+    )
+
+    table.add_column("#", style="cyan", width=4)
+    table.add_column("Title", style="green")
+    table.add_column("Type")
+    table.add_column("Downloaded")
+    table.add_column("URL")
+
+    for index, entry in enumerate(history, start=1):
+        table.add_row(
+            str(index),
+            entry.get("title", "Unknown"),
+            entry.get("type", "Unknown"),
+            entry.get("downloaded_at", "Unknown"),
+            entry.get("url", "Unknown")
+        )
+
+    console.print(table)
+
+
+def show_history_menu():
+    table = Table(
+        title="History Options",
+        border_style="cyan"
+    )
+
+    table.add_column("Option", style="cyan")
+    table.add_column("Action", style="green")
+
+    table.add_row("1", "Clear history")
+    table.add_row("2", "Back")
+
+    console.print(table)
+
 

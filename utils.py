@@ -1,6 +1,23 @@
 import yt_dlp
 from config import get_ytdlp_options
-import re
+from rich.progress import (
+    Progress,
+    TextColumn,
+    BarColumn,
+    TaskProgressColumn,
+    DownloadColumn,
+    TransferSpeedColumn,
+    TimeRemainingColumn
+)
+
+progress = Progress(
+    TextColumn("[bold cyan]{task.description}"),
+    BarColumn(),
+    TaskProgressColumn(),
+    DownloadColumn(),
+    TransferSpeedColumn(),
+    TimeRemainingColumn(),
+)
 
 def format_duration(seconds):
     if seconds is None:
@@ -116,71 +133,132 @@ def get_url_type(url):
 
     except Exception as e:
         raise RuntimeError(f"Could not analyze URL: {e}")
-    
 
-def progress_hook(data):
+def truncate_title(title, max_length=40):
+    if title is None:
+        return "Downloading..."
+
+    if len(title) <= max_length:
+        return title
+
+    return title[:max_length - 1].rstrip() + "…"
+
+def progress_hook(data, task_map=None):
+    if not task_map:
+        return
+
     info = data.get("info_dict", {})
+    format_id = info.get("format_id")
 
-    title = info.get("title", "Unknown")
-    playlist_index = info.get("playlist_index")
-    playlist_count = info.get("n_entries")
+    task_id = task_map.get(format_id)
 
-    if playlist_index and playlist_count:
-        position = f"[{playlist_index}/{playlist_count}] "
-    else:
-        position = ""
-
-    if len(title) > 40:
-        title = title[:37] + "..."
-
-    if info.get("vcodec") != "none":
-        stream = "Video"
-    elif info.get("acodec") != "none":
-        stream = "Audio"
-    else:
-        stream = "Unknown"
+    if task_id is None:
+        return
 
     if data["status"] == "downloading":
-
         downloaded = data.get("downloaded_bytes", 0)
         total = data.get("total_bytes") or data.get("total_bytes_estimate")
 
-        downloaded_str = f"{downloaded / 1024 / 1024:.1f}MiB"
-
-        if total:
-            total_str = f"{total / 1024 / 1024:.1f}MiB"
-            size = f"{downloaded_str}/{total_str}"
-        else:
-            size = f"{downloaded_str}/?"
-
-        print(
-            "\r" + " " * 140 + "\r",
-            end=""
-        )
-
-        print(
-            f"{position}"
-            f"{title:<40} | "
-            f"{stream:<5} | "
-            f"{size:>18} | "
-            f"{data.get('_percent_str', '?'):>6} | "
-            f"{data.get('_speed_str', '?'):>10} | "
-            f"ETA {data.get('_eta_str', '?')}",
-            end="",
-            flush=True
+        update_progress(
+            task_id,
+            downloaded,
+            total
         )
 
     elif data["status"] == "finished":
+        downloaded = data.get("downloaded_bytes", 0)
+        total = data.get("total_bytes") or downloaded
 
-        print(
-            "\r" + " " * 140 + "\r",
-            end=""
+        update_progress(
+            task_id,
+            downloaded,
+            total
         )
 
-        print(
-            f"{position}"
-            f"{title:<40} | "
-            f"{stream:<5} | "
-            "100.0% | Finished"
+def make_playlist_progress_hook():
+    task_map = {}
+
+    def hook(data):
+        info = data.get("info_dict", {})
+
+        video_id = info.get("id", "unknown")
+        format_id = info.get("format_id", "0")
+        key = f"{video_id}-{format_id}"
+
+        if key not in task_map:
+            title = truncate_title(info.get("title"))
+
+            vcodec = info.get("vcodec")
+            acodec = info.get("acodec")
+
+            if vcodec and vcodec != "none":
+                stream_label = "Video"
+            elif acodec and acodec != "none":
+                stream_label = "Audio"
+            else:
+                stream_label = "Stream"
+
+            total = data.get("total_bytes") or data.get("total_bytes_estimate")
+
+            task_map[key] = add_progress_task(
+                f"{title} | {stream_label}",
+                total=total
+            )
+
+        task_id = task_map[key]
+
+        if data["status"] == "downloading":
+            downloaded = data.get("downloaded_bytes", 0)
+            total = data.get("total_bytes") or data.get("total_bytes_estimate")
+            update_progress(task_id, downloaded, total)
+
+        elif data["status"] == "finished":
+            downloaded = data.get("downloaded_bytes", 0)
+            total = data.get("total_bytes") or downloaded
+            update_progress(task_id, downloaded, total)
+
+    return hook
+
+def start_progress():
+    progress.start()
+
+
+def stop_progress():
+    progress.stop()
+
+
+def update_progress(task_id, downloaded, total=None):
+    if total:
+        progress.update(
+            task_id,
+            completed=downloaded,
+            total=total
+        )
+    else:
+        progress.update(
+            task_id,
+            completed=downloaded
         )
 
+
+def add_progress_task(description, total=None):
+    task_id = progress.add_task(
+        description,
+        total=total
+    )
+
+    progress.refresh()
+
+    return task_id
+
+
+def set_progress_total(task_id, total):
+    progress.update(
+        task_id,
+        total=total
+    )
+
+
+def reset_progress():
+    for task in progress.tasks:
+        progress.remove_task(task.id)

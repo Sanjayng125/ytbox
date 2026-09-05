@@ -1,7 +1,14 @@
 import yt_dlp
 from config import get_ytdlp_options, DOWNLOAD_DIR
 from dependencies import get_ffmpeg_path
-from utils import progress_hook
+from utils import (
+    truncate_title,
+    progress_hook,
+    start_progress,
+    stop_progress,
+    reset_progress,
+    add_progress_task
+)
 from pathlib import Path
 from history import save_download
 from ui import show_quality_menu
@@ -142,7 +149,7 @@ def choose_quality(qualities):
         print("Invalid choice. Try again.")
         
 # ------------------------------------------------ Downloads ------------------------------------------------
-        
+
 def download_video(info, video_format, audio_format):
     ffmpeg_path = get_ffmpeg_path()
 
@@ -162,29 +169,55 @@ def download_video(info, video_format, audio_format):
         "merge_output_format": "mp4",
         **get_ytdlp_options()
     }
-    
-    options["progress_hooks"] = [progress_hook]
+
+    title = truncate_title(info.get("title", "Downloading..."))
+
+    video_size = video_format.get("filesize") or video_format.get("filesize_approx")
+    audio_size = audio_format.get("filesize") or audio_format.get("filesize_approx")
+
+    start_progress()
+
+    video_task_id = add_progress_task(f"{title} | Video", total=video_size)
+    audio_task_id = add_progress_task(f"{title} | Audio", total=audio_size)
+
+    task_map = {
+        video_id: video_task_id,
+        audio_id: audio_task_id,
+    }
+
+    options["progress_hooks"] = [
+        lambda data: progress_hook(data, task_map=task_map)
+    ]
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             print("Selected format:", options["format"])
-            ydl.download([info["webpage_url"]])
+
+            try:
+                ydl.download([info["webpage_url"]])
+            finally:
+                stop_progress()
+                reset_progress()
 
             filename = ydl.prepare_filename(info)
-            
+
         save_download(
             info["title"],
             info["webpage_url"],
             "Video + Audio"
         )
-        
+
         return Path(filename).with_suffix(".mp4")
 
     except yt_dlp.utils.DownloadError as e:
+        stop_progress()
+        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
+        stop_progress()
+        reset_progress()
         raise
 
 
@@ -198,12 +231,29 @@ def download_video_only(info, video_format):
         "outtmpl": str(DOWNLOAD_DIR / "%(title)s.%(ext)s"),
         **get_ytdlp_options()
     }
-    
-    options["progress_hooks"] = [progress_hook]
+
+    title = truncate_title(info.get("title", "Downloading..."))
+    video_size = video_format.get("filesize") or video_format.get("filesize_approx")
+
+    start_progress()
+
+    video_task_id = add_progress_task(f"{title} | Video", total=video_size)
+
+    task_map = {
+        format_id: video_task_id,
+    }
+
+    options["progress_hooks"] = [
+        lambda data: progress_hook(data, task_map=task_map)
+    ]
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([info["webpage_url"]])
+            try:
+                ydl.download([info["webpage_url"]])
+            finally:
+                stop_progress()
+                reset_progress()
 
             filename = ydl.prepare_filename(info)
 
@@ -212,12 +262,16 @@ def download_video_only(info, video_format):
             info["webpage_url"],
             "Video only"
         )
-        
+
         return Path(filename).with_suffix(".mp4")
 
     except yt_dlp.utils.DownloadError as e:
+        stop_progress()
+        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
+        stop_progress()
+        reset_progress()
         raise

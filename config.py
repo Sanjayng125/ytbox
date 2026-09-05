@@ -26,10 +26,10 @@ def get_ytdlp_options():
 
     options = {
         "quiet": True,
-        # "no_warnings": True,
+        "no_warnings": True,
         "hls_prefer_native": False,
         "noprogress": True,
-        "restrictfilenames": True
+        "restrictfilenames": True,
     }
 
     if deno_path:

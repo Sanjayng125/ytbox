@@ -1,4 +1,4 @@
-import downloader
+import config
 from dependencies import (
     get_ytdlp_version,
     get_latest_ytdlp_version,
@@ -34,7 +34,7 @@ def settings():
             choice = input("Choose an option: ")
 
             if choice == "1":
-                show_download_location(downloader.DOWNLOAD_DIR)
+                show_download_location(config.DOWNLOAD_DIR)
 
                 new_path = input(
                     "Enter new download location: "
@@ -45,14 +45,14 @@ def settings():
                     continue
 
                 try:
-                    downloader.set_download_dir(new_path)
+                    config.set_download_dir(new_path)
                 except RuntimeError as e:
                     print()
                     print(f"Error: {e}")
                     continue
 
                 show_success("Download location updated!")
-                show_download_location(downloader.DOWNLOAD_DIR)
+                show_download_location(config.DOWNLOAD_DIR)
 
             elif choice == "2":
                 return

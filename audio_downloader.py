@@ -1,6 +1,13 @@
 import yt_dlp
 from config import get_ytdlp_options, DOWNLOAD_DIR
-from utils import progress_hook
+from utils import (
+    progress_hook,
+    truncate_title,
+    start_progress,
+    stop_progress,
+    add_progress_task,
+    reset_progress
+)
 from pathlib import Path
 from history import save_download
 from ui import show_audio_menu
@@ -96,11 +103,28 @@ def download_audio_only(info, audio_format):
         **get_ytdlp_options()
     }
     
-    options["progress_hooks"] = [progress_hook]
+    title = truncate_title(info.get("title", "Downloading..."))
+    audio_size = audio_format.get("filesize") or audio_format.get("filesize_approx")
+
+    start_progress()
+
+    video_task_id = add_progress_task(f"{title} | Video", total=audio_size)
+
+    task_map = {
+        format_id: video_task_id,
+    }
+
+    options["progress_hooks"] = [
+        lambda data: progress_hook(data, task_map=task_map)
+    ]
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([info["webpage_url"]])
+            try:
+                ydl.download([info["webpage_url"]])
+            finally:
+                stop_progress()
+                reset_progress()
 
             filename = ydl.prepare_filename(info)
 
@@ -113,8 +137,12 @@ def download_audio_only(info, audio_format):
         return Path(filename)
 
     except yt_dlp.utils.DownloadError as e:
+        stop_progress()
+        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
+        stop_progress()
+        reset_progress()
         raise

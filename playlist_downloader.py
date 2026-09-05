@@ -1,6 +1,11 @@
 import yt_dlp
 from config import get_ytdlp_options, DOWNLOAD_DIR
-from utils import progress_hook
+from utils import (
+    make_playlist_progress_hook,
+    start_progress,
+    stop_progress,
+    reset_progress
+)
 from history import save_download
 from ui import (
     show_playlist_quality_menu,
@@ -25,97 +30,7 @@ def get_playlist_info(url):
 
     except Exception as e:
         raise RuntimeError(f"Could not get playlist information: {e}")
-    
-def download_playlist(url, quality=None, info=None):
-    if info is None:
-        info = get_playlist_info(url)
 
-    playlist_title = info.get("title", "Playlist")
-    playlist_id = info.get("id", "unknown")
-
-    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
-    playlist_dir.mkdir(parents=True, exist_ok=True)
-
-    options = get_ytdlp_options()
-    
-    options["progress_hooks"] = [progress_hook]
-
-    if quality:
-        options["format"] = (
-            f"bestvideo[height<=?{quality}]+bestaudio/"
-            f"best[height<=?{quality}]/best"
-        )
-    else:
-        options["format"] = "bv*+ba/b"
-
-    options["merge_output_format"] = "mp4"
-    options["outtmpl"] = str(
-        playlist_dir / "%(playlist_index)02d-%(title)s-[%(id)s].%(ext)s"
-    )
-
-    try:
-        with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([url])
-            
-        save_download(
-            playlist_title,
-            url,
-            "Playlist - Video + Audio"
-        )
-
-    except KeyboardInterrupt:
-        raise
-
-    except Exception as e:
-        raise RuntimeError(
-            f"Could not download playlist: {e}"
-        )
-
-
-def download_playlist_audio(url, quality=None, info=None):
-    if info is None:
-        info = get_playlist_info(url)
-
-    playlist_title = info.get("title", "Playlist")
-    playlist_id = info.get("id", "unknown")
-
-    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
-    playlist_dir.mkdir(parents=True, exist_ok=True)
-
-    options = get_ytdlp_options()
-    
-    options["progress_hooks"] = [progress_hook]
-
-    options["format"] = "bestaudio/best"
-    options["outtmpl"] = str(
-        playlist_dir / "%(playlist_index)02d-%(title)s-[%(id)s].%(ext)s"
-    )
-
-    options["postprocessors"] = [
-        {
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": quality or "192",
-        }
-    ]
-
-    try:
-        with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([url])
-            
-        save_download(
-            playlist_title,
-            url,
-            "Playlist - Audio only"
-        )
-
-    except KeyboardInterrupt:
-        raise
-
-    except Exception as e:
-        raise RuntimeError(
-            f"Could not download playlist audio: {e}"
-        )
         
 def choose_playlist_quality():
     show_playlist_quality_menu()
@@ -163,6 +78,112 @@ def choose_playlist_audio_quality():
             return choices[choice]
 
         print("Invalid option. Try again.")
+
+def download_playlist(url, quality=None, info=None):
+    if info is None:
+        info = get_playlist_info(url)
+
+    playlist_title = info.get("title", "Playlist")
+    playlist_id = info.get("id", "unknown")
+
+    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
+    playlist_dir.mkdir(parents=True, exist_ok=True)
+
+    options = get_ytdlp_options()
+
+    # CHANGED: use a dynamic hook (own private task_map) instead of the
+    # size-known single-video progress_hook — playlist entries aren't known
+    # ahead of time so tasks have to be created lazily, on first sight.
+    options["progress_hooks"] = [make_playlist_progress_hook()]
+
+    if quality:
+        options["format"] = (
+            f"bestvideo[height<=?{quality}]+bestaudio/"
+            f"best[height<=?{quality}]/best"
+        )
+    else:
+        options["format"] = "bv*+ba/b"
+
+    options["merge_output_format"] = "mp4"
+    options["outtmpl"] = str(
+        playlist_dir / "%(playlist_index)02d-%(title)s-[%(id)s].%(ext)s"
+    )
+
+    start_progress()  # CHANGED: was missing — no bars were ever shown before
+
+    try:
+        with yt_dlp.YoutubeDL(options) as ydl:
+            ydl.download([url])
+
+        save_download(
+            playlist_title,
+            url,
+            "Playlist - Video + Audio"
+        )
+
+    except KeyboardInterrupt:
+        raise
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Could not download playlist: {e}"
+        )
+
+    finally:
+        stop_progress()   # CHANGED
+        reset_progress()  # CHANGED
+
+
+def download_playlist_audio(url, quality=None, info=None):
+    if info is None:
+        info = get_playlist_info(url)
+
+    playlist_title = info.get("title", "Playlist")
+    playlist_id = info.get("id", "unknown")
+
+    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
+    playlist_dir.mkdir(parents=True, exist_ok=True)
+
+    options = get_ytdlp_options()
+
+    options["progress_hooks"] = [make_playlist_progress_hook()]  # CHANGED
+
+    options["format"] = "bestaudio/best"
+    options["outtmpl"] = str(
+        playlist_dir / "%(playlist_index)02d-%(title)s-[%(id)s].%(ext)s"
+    )
+
+    options["postprocessors"] = [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": quality or "192",
+        }
+    ]
+
+    start_progress()  # CHANGED: was missing
+
+    try:
+        with yt_dlp.YoutubeDL(options) as ydl:
+            ydl.download([url])
+
+        save_download(
+            playlist_title,
+            url,
+            "Playlist - Audio only"
+        )
+
+    except KeyboardInterrupt:
+        raise
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Could not download playlist audio: {e}"
+        )
+
+    finally:
+        stop_progress()   # CHANGED
+        reset_progress()  # CHANGED
 
         
 # if __name__ == "__main__":

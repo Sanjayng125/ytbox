@@ -5,7 +5,7 @@ from playlist_downloader import (
     choose_playlist_quality,
     choose_playlist_audio_quality
 )
-from utils import format_duration, get_playlist_duration
+from utils import get_playlist_duration
 from downloader import cleanup_partial_downloads
 from ui import (
     show_playlist_information_panel,
@@ -52,6 +52,7 @@ def download_playlist_menu():
         return
 
     try:
+        print("Extracting Playlist Information...")
         info = get_playlist_info(url)
 
         title = info.get("title", "Unknown")

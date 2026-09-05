@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from datetime import datetime
+from ui import show_history_table, show_history_menu, show_success, show_error
 
 HISTORY_FILE = Path(__file__).resolve().parent / "history.json"
 
@@ -44,35 +45,22 @@ def show_history():
     while True:
         history = get_history()
 
-        print("\nDownload History")
-        print("----------------")
-
-        if not history:
-            print("No download history.\n")
-        else:
-            for index, entry in enumerate(history, start=1):
-                print(f"{index}. {entry['title']}")
-                print(f"   Type: {entry['type']}")
-                print(f"   Downloaded: {entry.get('downloaded_at', 'Unknown')}")
-                print(f"   URL: {entry['url']}")
-                print()
-
-        print("1. Clear history")
-        print("2. Back")
+        show_history_table(history)
+        show_history_menu()
 
         try:
             choice = input("Choose an option: ").strip()
 
             if choice == "1":
                 clear_history()
-                print("History cleared.")
+                show_success("History cleared.")
                 return
 
             elif choice == "2":
                 return
 
             else:
-                print("Invalid option. Try again.")
+                show_error("Invalid option. Try again.")
         except KeyboardInterrupt:
             return
         

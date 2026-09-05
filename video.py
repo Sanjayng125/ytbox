@@ -47,6 +47,7 @@ def download_video_menu():
         url = input("Enter YouTube URL: ")
 
         try:
+            print("Extracting Video Information...")
             info = get_video_info(url)
         except RuntimeError as e:
             print()
