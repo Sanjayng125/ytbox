@@ -187,9 +187,7 @@ def get_ytdlp_version():
 
         return result.stdout.strip()
     except (subprocess.SubprocessError, OSError):
-        print("return code:", result.returncode)
-        print("stdout:", result.stdout)
-        print("stderr:", result.stderr)
+        print("yt-dlp version fetch failed!.")
         return None
 
 def get_latest_ytdlp_version():

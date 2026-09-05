@@ -1,7 +1,5 @@
 from dependencies import get_ffmpeg_path
-from config import (
-    DOWNLOAD_DIR
-)
+import config
 from ui import show_download_mode_menu
 
 def choose_download_mode():
@@ -17,7 +15,7 @@ def choose_download_mode():
         
 
 def cleanup_partial_downloads():
-    DOWNLOAD_DIR.mkdir(exist_ok=True)
+    config.DOWNLOAD_DIR.mkdir(exist_ok=True)
 
     temporary_extensions = (
         ".part",
@@ -25,7 +23,7 @@ def cleanup_partial_downloads():
         ".part-Frag",
     )
 
-    for path in DOWNLOAD_DIR.rglob("*"):
+    for path in config.DOWNLOAD_DIR.rglob("*"):
         if path.is_file() and path.name.endswith(temporary_extensions):
             try:
                 path.unlink()

@@ -4,6 +4,16 @@ from datetime import datetime
 from ui import show_history_table, show_history_menu, show_success, show_error
 
 HISTORY_FILE = Path(__file__).resolve().parent / "history.json"
+MAX_HISTORY_ENTRIES = 200
+
+
+def _write_history_atomic(history):
+    temp_file = HISTORY_FILE.with_suffix(".json.tmp")
+
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=4)
+
+    temp_file.replace(HISTORY_FILE)  # atomic on both Windows and POSIX
 
 
 def save_download(title, url, download_type):
@@ -25,8 +35,10 @@ def save_download(title, url, download_type):
 
     history.append(entry)
 
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=4)
+    if len(history) > MAX_HISTORY_ENTRIES:
+        history = history[-MAX_HISTORY_ENTRIES:]
+
+    _write_history_atomic(history)
 
 
 def get_history():
@@ -37,10 +49,10 @@ def get_history():
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except json.decoder.JSONDecodeError:
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-                json.dump([], f, indent=4)
+        _write_history_atomic([])
         return []
-    
+
+
 def show_history():
     while True:
         history = get_history()
@@ -63,8 +75,8 @@ def show_history():
                 show_error("Invalid option. Try again.")
         except KeyboardInterrupt:
             return
-        
+
+
 def clear_history():
     if HISTORY_FILE.exists():
         HISTORY_FILE.unlink()
-

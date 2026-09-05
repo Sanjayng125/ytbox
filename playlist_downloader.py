@@ -1,5 +1,6 @@
 import yt_dlp
-from config import get_ytdlp_options, DOWNLOAD_DIR
+import config
+from config import get_ytdlp_options
 from utils import (
     make_playlist_progress_hook,
     start_progress,
@@ -86,7 +87,7 @@ def download_playlist(url, quality=None, info=None):
     playlist_title = info.get("title", "Playlist")
     playlist_id = info.get("id", "unknown")
 
-    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
+    playlist_dir = config.DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
     playlist_dir.mkdir(parents=True, exist_ok=True)
 
     options = get_ytdlp_options()
@@ -138,7 +139,7 @@ def download_playlist_audio(url, quality=None, info=None):
     playlist_title = info.get("title", "Playlist")
     playlist_id = info.get("id", "unknown")
 
-    playlist_dir = DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
+    playlist_dir = config.DOWNLOAD_DIR / f"{playlist_title}-[{playlist_id}]"
     playlist_dir.mkdir(parents=True, exist_ok=True)
 
     options = get_ytdlp_options()

@@ -1,5 +1,6 @@
 import yt_dlp
-from config import get_ytdlp_options, DOWNLOAD_DIR
+import config
+from config import get_ytdlp_options
 from dependencies import get_ffmpeg_path
 from utils import (
     truncate_title,
@@ -161,14 +162,14 @@ def download_video(info, video_format, audio_format):
             "FFmpeg is required to merge video and audio, but it was not found."
         )
 
-    DOWNLOAD_DIR.mkdir(exist_ok=True)
+    config.DOWNLOAD_DIR.mkdir(exist_ok=True)
 
     video_id = video_format["format_id"]
     audio_id = audio_format["format_id"]
 
     options = {
         "format": f"{video_id}+{audio_id}",
-        "outtmpl": str(DOWNLOAD_DIR / "%(title)s.%(ext)s"),
+        "outtmpl": str(config.DOWNLOAD_DIR / "%(title)s.%(ext)s"),
         "merge_output_format": "mp4",
         **get_ytdlp_options()
     }
@@ -225,13 +226,13 @@ def download_video(info, video_format, audio_format):
 
 
 def download_video_only(info, video_format):
-    DOWNLOAD_DIR.mkdir(exist_ok=True)
+    config.DOWNLOAD_DIR.mkdir(exist_ok=True)
 
     format_id = video_format["format_id"]
 
     options = {
         "format": format_id,
-        "outtmpl": str(DOWNLOAD_DIR / "%(title)s.%(ext)s"),
+        "outtmpl": str(config.DOWNLOAD_DIR / "%(title)s.%(ext)s"),
         **get_ytdlp_options()
     }
 

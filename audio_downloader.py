@@ -1,5 +1,6 @@
 import yt_dlp
-from config import get_ytdlp_options, DOWNLOAD_DIR
+import config
+from config import get_ytdlp_options
 from utils import (
     progress_hook,
     truncate_title,
@@ -93,13 +94,13 @@ def choose_audio(audio_formats):
 # ------------------------------------------------ Downloads ------------------------------------------------
 
 def download_audio_only(info, audio_format):
-    DOWNLOAD_DIR.mkdir(exist_ok=True)
+    config.DOWNLOAD_DIR.mkdir(exist_ok=True)
 
     format_id = audio_format["format_id"]
 
     options = {
         "format": format_id,
-        "outtmpl": str(DOWNLOAD_DIR / "%(title)s.%(ext)s"),
+        "outtmpl": str(config.DOWNLOAD_DIR / "%(title)s.%(ext)s"),
         **get_ytdlp_options()
     }
     
