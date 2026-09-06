@@ -36,6 +36,7 @@ jobs:
             --hidden-import yt_dlp.extractor \
             --collect-submodules yt_dlp \
             ytbox/main.py
+        shell: bash
 
       - name: Stage bin and data (Windows)
         if: runner.os == 'Windows'
