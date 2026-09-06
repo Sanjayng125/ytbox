@@ -28,7 +28,13 @@ jobs:
       - name: Install dependencies
         run: pip install -e . pyinstaller
 
-      - name: Build
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: pyinstaller --onedir --name ytbox --hidden-import yt_dlp.extractor --collect-submodules yt_dlp ytbox/main.py
+        shell: pwsh
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         run: |
           pyinstaller \
             --onedir \
@@ -36,7 +42,6 @@ jobs:
             --hidden-import yt_dlp.extractor \
             --collect-submodules yt_dlp \
             ytbox/main.py
-        shell: bash
 
       - name: Stage bin and data (Windows)
         if: runner.os == 'Windows'
