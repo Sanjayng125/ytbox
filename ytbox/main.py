@@ -1,23 +1,26 @@
-from dependencies import ensure_dependencies
-from video import (
+from ytbox.dependencies import ensure_dependencies
+from ytbox.video import (
     download_video_menu,
     show_video_information
 )
-from playlist import (
+from ytbox.playlist import (
     download_playlist_menu,
     show_playlist_information
 )
-from application import (
+from ytbox.application import (
     show_menu,
     update,
     settings
 )
-from history import show_history
+from ytbox.history import show_history
 import argparse
-from ui import (
+from ytbox.ui import (
     show_info,
-    show_error
+    show_error,
+    show_success
 )
+import ytbox.dependencies as _deps
+_deps.set_logger(show_info, show_success, show_error)
 
 try:
     ensure_dependencies()
@@ -41,6 +44,9 @@ def parse_arguments():
     return parser.parse_args()
 
 def interactive_mode():
+    from ytbox.config import init_dirs
+    init_dirs()
+    
     while True:
         try:
             show_menu()

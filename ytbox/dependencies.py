@@ -11,6 +11,26 @@ import stat
 from packaging.version import Version
 import json
 
+def _default_info(msg):
+    print(f"• {msg}")
+
+def _default_success(msg):
+    print(f"✓ {msg}")
+
+def _default_error(msg):
+    import sys
+    print(f"✗ {msg}", file=sys.stderr)
+
+_log_info    = _default_info
+_log_success = _default_success
+_log_error   = _default_error
+
+def set_logger(info_fn, success_fn, error_fn):
+    global _log_info, _log_success, _log_error
+    _log_info    = info_fn
+    _log_success = success_fn
+    _log_error   = error_fn
+
 SYSTEM = platform.system()
 ARCH = platform.machine()
 
@@ -135,7 +155,7 @@ def ensure_dependencies():
     try:
         for name, path in dependencies.items():
             if path is None:
-                show_error(f"{name.upper()} not found.")
+                _log_error(f"{name.upper()} not found.")
                 dependencies[name] = installers[name]()
 
     except KeyboardInterrupt:
@@ -146,7 +166,7 @@ def ensure_dependencies():
                 except OSError:
                     pass
 
-        show_info("\nDependency installation cancelled.")
+        _log_info("\nDependency installation cancelled.")
         raise SystemExit
 
     except (urllib.error.URLError, OSError, zipfile.BadZipFile, tarfile.TarError) as e:
@@ -158,7 +178,7 @@ def ensure_dependencies():
                     pass
 
         print()
-        show_error(f"Dependency installation failed: {e}")
+        _log_error(f"Dependency installation failed: {e}")
         raise SystemExit
 
     return dependencies
@@ -180,11 +200,11 @@ def install_ffmpeg():
 
     archive_path = BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}"
 
-    show_info("Downloading FFmpeg...")
+    _log_info("Downloading FFmpeg...")
 
     urllib.request.urlretrieve(FFMPEG_URL, archive_path)
 
-    show_info("Extracting FFmpeg...")
+    _log_info("Extracting FFmpeg...")
 
     _extract_ffmpeg_binary(archive_path, FFMPEG_PATH)
 
@@ -193,7 +213,7 @@ def install_ffmpeg():
     if not FFMPEG_PATH.exists():
         raise RuntimeError("Could not find the ffmpeg binary in the downloaded archive.")
 
-    show_success("FFmpeg installed successfully.")
+    _log_success("FFmpeg installed successfully.")
 
     return FFMPEG_PATH
 
@@ -213,11 +233,11 @@ def install_deno():
 
     zip_path = BIN_DIR / "deno.zip"
 
-    show_info("Downloading Deno...")
+    _log_info("Downloading Deno...")
 
     urllib.request.urlretrieve(DENO_URL, zip_path)
 
-    show_info("Extracting Deno...")
+    _log_info("Extracting Deno...")
 
     with zipfile.ZipFile(zip_path, "r") as archive:
         with archive.open(DENO_PATH.name) as source:
@@ -231,7 +251,7 @@ def install_deno():
     if not DENO_PATH.exists():
         raise RuntimeError("Could not find the deno binary in the downloaded archive.")
 
-    show_success("Deno installed successfully.")
+    _log_success("Deno installed successfully.")
 
     return DENO_PATH
 
@@ -249,7 +269,7 @@ def get_ytdlp_version():
 
         return result.stdout.strip()
     except (subprocess.SubprocessError, OSError):
-        show_error("yt-dlp version fetch failed!.")
+        _log_error("yt-dlp version fetch failed!.")
         return None
 
 def get_latest_ytdlp_version():
@@ -356,11 +376,11 @@ def update_ffmpeg():
     archive_path = BIN_DIR / f"ffmpeg.{FFMPEG_ARCHIVE_FORMAT}"
 
     try:
-        show_info("Downloading FFmpeg...")
+        _log_info("Downloading FFmpeg...")
 
         urllib.request.urlretrieve(FFMPEG_URL, archive_path)
 
-        show_info("Extracting FFmpeg...")
+        _log_info("Extracting FFmpeg...")
 
         _extract_ffmpeg_binary(archive_path, FFMPEG_PATH)
 
@@ -429,11 +449,11 @@ def update_deno():
     zip_path = BIN_DIR / "deno.zip"
 
     try:
-        show_info("Downloading Deno...")
+        _log_info("Downloading Deno...")
 
         urllib.request.urlretrieve(DENO_URL, zip_path)
 
-        show_info("Extracting Deno...")
+        _log_info("Extracting Deno...")
 
         with zipfile.ZipFile(zip_path, "r") as archive:
             with archive.open(DENO_PATH.name) as source:
@@ -448,9 +468,3 @@ def update_deno():
         if zip_path.exists():
             zip_path.unlink()
 
-# to prevent circular import error
-from ui import (
-    show_info,
-    show_success,
-    show_error
-)

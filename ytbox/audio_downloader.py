@@ -1,17 +1,17 @@
 import yt_dlp
-import config
-from config import get_ytdlp_options
-from utils import (
+import ytbox.config as config
+from ytbox.config import get_ytdlp_options
+from ytbox.utils import (
     progress_hook,
     truncate_title,
     start_progress,
-    stop_progress,
     add_progress_task,
-    reset_progress
+    finish_progress,
+    choose_from_menu
 )
 from pathlib import Path
-from history import save_download
-from ui import (
+from ytbox.history import save_download
+from ytbox.ui import (
     show_audio_menu,
     show_error
 )
@@ -81,19 +81,14 @@ def choose_audio(audio_formats):
     if not audio_formats:
         raise RuntimeError("No suitable audio formats found.")
     
-    show_audio_menu(audio_formats)
+    item = choose_from_menu(
+        audio_formats,
+        prompt="Choose audio: ",
+        display_fn=show_audio_menu,
+        error_fn=show_error,
+    )
+    return item["format"]
 
-    while True:
-        choice = input("Choose audio: ")
-
-        if choice.isdigit():
-            choice = int(choice)
-
-            if 1 <= choice <= len(audio_formats):
-                return audio_formats[choice - 1]["format"]
-
-        show_error("Invalid choice. Try again.")
-        
 # ------------------------------------------------ Downloads ------------------------------------------------
 
 def download_audio_only(info, audio_format):
@@ -124,11 +119,7 @@ def download_audio_only(info, audio_format):
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            try:
-                ydl.download([info["webpage_url"]])
-            finally:
-                stop_progress()
-                reset_progress()
+            ydl.download([info["webpage_url"]])
 
             filename = ydl.prepare_filename(info)
 
@@ -141,12 +132,10 @@ def download_audio_only(info, audio_format):
         return Path(filename)
 
     except yt_dlp.utils.DownloadError as e:
-        stop_progress()
-        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
-        stop_progress()
-        reset_progress()
         raise
+    finally:
+        finish_progress()

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from datetime import datetime
-from ui import show_history_table, show_history_menu, show_success, show_error
+from ytbox.ui import show_history_table, show_history_menu, show_success, show_error
 
 HISTORY_FILE = Path(__file__).resolve().parent / "history.json"
 MAX_HISTORY_ENTRIES = 200
@@ -24,7 +24,7 @@ def save_download(title, url, download_type):
         "downloaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
-    history = []
+    history = get_history()
 
     if HISTORY_FILE.exists():
         try:
@@ -48,7 +48,7 @@ def get_history():
     try:
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except json.decoder.JSONDecodeError:
+    except (json.JSONDecodeError, OSError):
         _write_history_atomic([])
         return []
 
@@ -78,5 +78,4 @@ def show_history():
 
 
 def clear_history():
-    if HISTORY_FILE.exists():
-        HISTORY_FILE.unlink()
+    _write_history_atomic([])

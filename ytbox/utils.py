@@ -1,5 +1,5 @@
 import yt_dlp
-from config import get_ytdlp_options
+from ytbox.config import get_ytdlp_options
 from rich.progress import (
     Progress,
     TextColumn,
@@ -60,6 +60,16 @@ def format_live_status(status):
         return "Not live"
 
     return "Unknown"
+
+def choose_from_menu(items, prompt, display_fn, error_fn):
+    display_fn(items)
+    while True:
+        choice = input(prompt)
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(items):
+                return items[idx - 1]
+        error_fn("Invalid choice. Try again.")
 
 def get_format_summary(info):
     formats = info.get("formats", [])
@@ -175,19 +185,18 @@ def progress_hook(data, task_map=None):
             total
         )
 
-def make_playlist_progress_hook():
+def make_playlist_progress_hook(overall_task_id=None):
     task_map = {}
+    finished_videos = set()
 
     def hook(data):
         info = data.get("info_dict", {})
-
-        video_id = info.get("id", "unknown")
+        video_id  = info.get("id", "unknown")
         format_id = info.get("format_id", "0")
         key = f"{video_id}-{format_id}"
 
         if key not in task_map:
             title = truncate_title(info.get("title"))
-
             vcodec = info.get("vcodec")
             acodec = info.get("acodec")
 
@@ -199,11 +208,7 @@ def make_playlist_progress_hook():
                 stream_label = "Stream"
 
             total = data.get("total_bytes") or data.get("total_bytes_estimate")
-
-            task_map[key] = add_progress_task(
-                f"{title} | {stream_label}",
-                total=total
-            )
+            task_map[key] = add_progress_task(f"{title} | {stream_label}", total=total)
 
         task_id = task_map[key]
 
@@ -217,15 +222,17 @@ def make_playlist_progress_hook():
             total = data.get("total_bytes") or downloaded
             update_progress(task_id, downloaded, total)
 
+            if overall_task_id is not None and video_id not in finished_videos:
+                finished_videos.add(video_id)
+                progress.advance(overall_task_id, 1)
+
     return hook
 
 def start_progress():
     progress.start()
 
-
 def stop_progress():
     progress.stop()
-
 
 def update_progress(task_id, downloaded, total=None):
     if total:
@@ -240,7 +247,6 @@ def update_progress(task_id, downloaded, total=None):
             completed=downloaded
         )
 
-
 def add_progress_task(description, total=None):
     task_id = progress.add_task(
         description,
@@ -251,14 +257,17 @@ def add_progress_task(description, total=None):
 
     return task_id
 
-
 def set_progress_total(task_id, total):
     progress.update(
         task_id,
         total=total
     )
 
-
 def reset_progress():
+    for task in progress.tasks:
+        progress.remove_task(task.id)
+
+def finish_progress():
+    progress.stop()
     for task in progress.tasks:
         progress.remove_task(task.id)

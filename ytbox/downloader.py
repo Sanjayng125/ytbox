@@ -1,5 +1,5 @@
-import config
-from ui import (
+import ytbox.config as config
+from ytbox.ui import (
     show_download_mode_menu,
     show_error
 )

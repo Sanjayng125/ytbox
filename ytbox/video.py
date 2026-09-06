@@ -1,23 +1,23 @@
-from downloader import (
+from ytbox.downloader import (
     choose_download_mode,
     cleanup_partial_downloads
 )
-from utils import (
+from ytbox.utils import (
     get_format_summary
 )
-from video_downloader import (
+from ytbox.video_downloader import (
     choose_quality,
     get_video_info,
     get_available_qualities,
     download_video,
     download_video_only
 )
-from audio_downloader import (
+from ytbox.audio_downloader import (
     choose_audio,
     get_available_audio,
     download_audio_only
 )
-from ui import (
+from ytbox.ui import (
     show_video_information_panel,
     show_info,
     show_success

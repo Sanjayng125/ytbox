@@ -1,4 +1,4 @@
-from dependencies import get_ffmpeg_path, get_deno_path
+from ytbox.dependencies import get_ffmpeg_path, get_deno_path
 from pathlib import Path
 import json
 
@@ -37,7 +37,9 @@ def get_saved_download_dir():
 
 
 DOWNLOAD_DIR = get_saved_download_dir()
-DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+def init_dirs():
+    DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def set_download_dir(path):
     global DOWNLOAD_DIR

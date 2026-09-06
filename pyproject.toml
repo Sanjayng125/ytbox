@@ -10,24 +10,11 @@ dependencies = [
 ]
 
 [project.scripts]
-ytbox = "main:cli_entry"
+ytbox = "ytbox.main:cli_entry"
 
-[tool.setuptools]
-py-modules = [
-    "main",
-    "application",
-    "audio_downloader",
-    "config",
-    "dependencies",
-    "downloader",
-    "history",
-    "playlist",
-    "playlist_downloader",
-    "ui",
-    "utils",
-    "video",
-    "video_downloader",
-]
+[tool.setuptools.packages.find]
+where = ["."]
+
 
 [build-system]
 requires = ["setuptools>=61.0"]

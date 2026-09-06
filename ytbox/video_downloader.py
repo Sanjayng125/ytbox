@@ -1,18 +1,18 @@
 import yt_dlp
-import config
-from config import get_ytdlp_options
-from dependencies import get_ffmpeg_path
-from utils import (
+import ytbox.config as config
+from ytbox.config import get_ytdlp_options
+from ytbox.dependencies import get_ffmpeg_path
+from ytbox.utils import (
     truncate_title,
     progress_hook,
     start_progress,
-    stop_progress,
-    reset_progress,
-    add_progress_task
+    add_progress_task,
+    finish_progress,
+    choose_from_menu
 )
 from pathlib import Path
-from history import save_download
-from ui import (
+from ytbox.history import save_download
+from ytbox.ui import (
     show_quality_menu,
     show_info,
     show_error
@@ -109,24 +109,6 @@ def get_best_video_formats(info):
         key=lambda x: x["height"]
     )
 
-
-def get_video_format(info, quality):
-    formats = get_best_video_formats(info)
-
-    if not formats:
-        return None
-
-    selected = None
-
-    for format in formats:
-        if format["height"] <= quality:
-            selected = format
-
-    if selected is None:
-        selected = formats[0]
-
-    return selected
-
 def get_available_qualities(info):
     formats = get_best_video_formats(info)
 
@@ -142,19 +124,14 @@ def get_available_qualities(info):
 def choose_quality(qualities):
     if not qualities:
         raise RuntimeError("No suitable video formats found.")
-
-    show_quality_menu(qualities)
-
-    while True:
-        choice = input("Choose quality: ")
-
-        if choice.isdigit():
-            choice = int(choice)
-
-            if 1 <= choice <= len(qualities):
-                return qualities[choice - 1]["format"]
-
-        show_error("Invalid choice. Try again.")
+    
+    item = choose_from_menu(
+        qualities,
+        prompt="Choose quality: ",
+        display_fn=show_quality_menu,
+        error_fn=show_error,
+    )
+    return item["format"]
         
 # ------------------------------------------------ Downloads ------------------------------------------------
 
@@ -201,11 +178,7 @@ def download_video(info, video_format, audio_format):
         with yt_dlp.YoutubeDL(options) as ydl:
             show_info(f"Selected format: {options["format"]}")
 
-            try:
-                ydl.download([info["webpage_url"]])
-            finally:
-                stop_progress()
-                reset_progress()
+            ydl.download([info["webpage_url"]])
 
             filename = ydl.prepare_filename(info)
 
@@ -215,19 +188,16 @@ def download_video(info, video_format, audio_format):
             "Video + Audio"
         )
 
-        return Path(filename).with_suffix(".mp4")
+        return filename.with_suffix(".mp4") if filename.suffix != ".mp4" else filename
 
     except yt_dlp.utils.DownloadError as e:
-        stop_progress()
-        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
-        stop_progress()
-        reset_progress()
         raise
-
+    finally:
+        finish_progress()
 
 def download_video_only(info, video_format):
     config.DOWNLOAD_DIR.mkdir(exist_ok=True)
@@ -257,11 +227,7 @@ def download_video_only(info, video_format):
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            try:
-                ydl.download([info["webpage_url"]])
-            finally:
-                stop_progress()
-                reset_progress()
+            ydl.download([info["webpage_url"]])
 
             filename = ydl.prepare_filename(info)
 
@@ -271,15 +237,13 @@ def download_video_only(info, video_format):
             "Video only"
         )
 
-        return Path(filename).with_suffix(".mp4")
+        return Path(filename)
 
     except yt_dlp.utils.DownloadError as e:
-        stop_progress()
-        reset_progress()
         raise RuntimeError(
             "Download failed. Check your internet connection or try again."
         ) from e
     except KeyboardInterrupt:
-        stop_progress()
-        reset_progress()
         raise
+    finally:
+        finish_progress()

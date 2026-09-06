@@ -1,14 +1,14 @@
 import yt_dlp
-import config
-from config import get_ytdlp_options
-from utils import (
+import ytbox.config as config
+from ytbox.config import get_ytdlp_options
+from ytbox.utils import (
     make_playlist_progress_hook,
     start_progress,
-    stop_progress,
-    reset_progress
+    finish_progress,
+    add_progress_task
 )
-from history import save_download
-from ui import (
+from ytbox.history import save_download
+from ytbox.ui import (
     show_playlist_quality_menu,
     show_playlist_audio_quality_menu,
     show_error
@@ -93,7 +93,6 @@ def download_playlist(url, quality=None, info=None):
 
     options = get_ytdlp_options()
 
-    options["progress_hooks"] = [make_playlist_progress_hook()]
 
     if quality:
         options["format"] = (
@@ -109,6 +108,16 @@ def download_playlist(url, quality=None, info=None):
     )
 
     start_progress()
+    
+    entries = info.get("entries") or []
+    total_videos = len(entries)
+
+    overall_task = add_progress_task(
+        f"[bold]Playlist — 0 / {total_videos} videos[/bold]",
+        total=total_videos,
+    )
+
+    options["progress_hooks"] = [make_playlist_progress_hook(overall_task_id=overall_task)]
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -129,8 +138,7 @@ def download_playlist(url, quality=None, info=None):
         )
 
     finally:
-        stop_progress()
-        reset_progress()
+        finish_progress()
 
 
 def download_playlist_audio(url, quality=None, info=None):
@@ -181,8 +189,7 @@ def download_playlist_audio(url, quality=None, info=None):
         )
 
     finally:
-        stop_progress()
-        reset_progress()
+        finish_progress()
 
         
 # if __name__ == "__main__":

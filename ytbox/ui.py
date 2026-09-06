@@ -1,7 +1,7 @@
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from utils import format_number, format_duration, format_date, format_live_status
+from ytbox.utils import format_number, format_duration, format_date, format_live_status
 
 console = Console()
 
@@ -22,6 +22,7 @@ def show_main_menu():
             menu,
             title="[bold green]YTBox[/bold green]",
             border_style="cyan",
+            padding=(1,2),
             expand=False
         )
     )
@@ -55,6 +56,7 @@ def show_download_mode_menu():
             menu,
             title="[bold green]Download Mode[/bold green]",
             border_style="cyan",
+            padding=(1,2),
             expand=False
         )
     )
@@ -278,6 +280,7 @@ def show_settings_menu():
             menu,
             title="[bold green]Settings[/bold green]",
             border_style="cyan",
+            padding=(1,2),
             expand=False
         )
     )
@@ -289,6 +292,7 @@ def show_download_location(path):
             str(path),
             title="[bold green]Current Download Location[/bold green]",
             border_style="cyan",
+            padding=(1,2),
             expand=False
         )
     )
@@ -347,6 +351,7 @@ def show_history_table(history):
                 "No download history.",
                 title="[bold green]Download History[/bold green]",
                 border_style="cyan",
+                padding=(0,2),
                 expand=False
             )
         )
@@ -355,10 +360,11 @@ def show_history_table(history):
     table = Table(
         title="Download History",
         border_style="cyan",
-        show_lines=True
+        show_lines=True,
+        row_styles=["", "dim"],
     )
-
-    table.add_column("#", style="cyan", width=4)
+    
+    table.add_column("#", style="cyan", width=4, justify="right")
     table.add_column("Title", style="green")
     table.add_column("Type")
     table.add_column("Downloaded")
@@ -390,4 +396,24 @@ def show_history_menu():
 
     console.print(table)
 
+def show_update_status_table(results):
+    table = Table(title="Dependency Status", border_style="cyan")
+    table.add_column("Dependency", style="cyan")
+    table.add_column("Installed",  style="white")
+    table.add_column("Latest",     style="white")
+    table.add_column("Status",     style="white")
 
+    for dep in results:
+        installed = dep["installed"] or "[dim]unknown[/dim]"
+        latest    = dep["latest_display"] or "[dim]unknown[/dim]"
+
+        if dep["needs_update"] is None:
+            status = "[dim]could not check[/dim]"
+        elif dep["needs_update"]:
+            status = "[bold yellow]update available[/bold yellow]"
+        else:
+            status = "[bold green]up to date ✓[/bold green]"
+
+        table.add_row(dep["name"], installed, latest, status)
+
+    console.print(table)
