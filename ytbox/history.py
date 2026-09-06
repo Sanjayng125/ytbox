@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 from ytbox.ui import show_history_table, show_history_menu, show_success, show_error
 
-HISTORY_FILE = Path(__file__).resolve().parent / "history.json"
+HISTORY_FILE = Path(__file__).resolve().parent.parent / "data" / "history.json"
 MAX_HISTORY_ENTRIES = 200
 
 
@@ -74,6 +74,7 @@ def show_history():
             else:
                 show_error("Invalid option. Try again.")
         except KeyboardInterrupt:
+            print()
             return
 
 

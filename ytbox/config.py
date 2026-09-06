@@ -2,7 +2,7 @@ from ytbox.dependencies import get_ffmpeg_path, get_deno_path
 from pathlib import Path
 import json
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_FILE = BASE_DIR / "config.json"
 DEFAULT_DOWNLOAD_DIR = BASE_DIR / "downloads"
 

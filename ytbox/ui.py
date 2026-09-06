@@ -23,7 +23,7 @@ def show_main_menu():
             title="[bold green]YTBox[/bold green]",
             border_style="cyan",
             padding=(1,2),
-            expand=False
+            expand=False,
         )
     )
 
@@ -361,7 +361,6 @@ def show_history_table(history):
         title="Download History",
         border_style="cyan",
         show_lines=True,
-        row_styles=["", "dim"],
     )
     
     table.add_column("#", style="cyan", width=4, justify="right")

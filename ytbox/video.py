@@ -22,13 +22,17 @@ from ytbox.ui import (
     show_info,
     show_success
 )
+from rich.status import Status
+from rich.console import Console
+console = Console()
 
 def show_video_information():
     try:
         url = input("Enter YouTube URL: ")
 
         try:
-            info = get_video_info(url)
+            with Status("[bold yellow]Fetching Video Information…[/bold yellow]", console=console):
+                info = get_video_info(url)
         except RuntimeError as e:
             print()
             print(f"Error: {e}")
@@ -51,8 +55,8 @@ def download_video_menu():
         url = input("Enter YouTube URL: ")
 
         try:
-            show_info("Extracting Video Information...")
-            info = get_video_info(url)
+            with Status("[bold yellow]Extracting Video Information…[/bold yellow]", console=console):
+                info = get_video_info(url)
         except RuntimeError as e:
             print()
             print(f"Error: {e}")

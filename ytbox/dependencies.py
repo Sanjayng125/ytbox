@@ -34,7 +34,7 @@ def set_logger(info_fn, success_fn, error_fn):
 SYSTEM = platform.system()
 ARCH = platform.machine()
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 BIN_DIR = BASE_DIR / "bin"
 
 if SYSTEM == "Windows":

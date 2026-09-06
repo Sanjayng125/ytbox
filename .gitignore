@@ -7,3 +7,5 @@ history.json
 project_dump.txt
 config.json
 ytbox.egg-info
+data/history.json
+data/config.json

@@ -15,6 +15,9 @@ from ytbox.ui import (
     show_error,
     show_info,
 )
+from rich.status import Status
+from rich.console import Console
+console = Console()
 
 def show_playlist_information():
     url = input("Enter playlist URL: ").strip()
@@ -24,7 +27,8 @@ def show_playlist_information():
         return
 
     try:
-        info = get_playlist_info(url)
+        with Status("[bold yellow]Extracting Playlist Information…[/bold yellow]", console=console):
+            info = get_playlist_info(url)
 
         title = info.get("title", "Unknown")
         channel = info.get("uploader", "Unknown")
@@ -103,7 +107,8 @@ def download_playlist_menu():
 
     try:
         show_info("Extracting Playlist Information...")
-        info = get_playlist_info(url)
+        with Status("[bold yellow]Extracting Playlist Information…[/bold yellow]", console=console):
+            info = get_playlist_info(url)
 
         title = info.get("title", "Unknown")
         entries = info.get("entries") or []

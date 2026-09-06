@@ -188,7 +188,7 @@ def download_video(info, video_format, audio_format):
             "Video + Audio"
         )
 
-        return filename.with_suffix(".mp4") if filename.suffix != ".mp4" else filename
+        return Path(filename).with_suffix(".mp4") if not filename.endswith(".mp4") else filename
 
     except yt_dlp.utils.DownloadError as e:
         raise RuntimeError(
