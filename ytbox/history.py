@@ -2,10 +2,15 @@ import json
 from pathlib import Path
 from datetime import datetime
 from ytbox.ui import show_history_table, show_history_menu, show_success, show_error
+import sys
 
-HISTORY_FILE = Path(__file__).resolve().parent.parent / "data" / "history.json"
+def _get_base_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent
+
+HISTORY_FILE = _get_base_dir() / "data" / "history.json"
 MAX_HISTORY_ENTRIES = 200
-
 
 def _write_history_atomic(history):
     temp_file = HISTORY_FILE.with_suffix(".json.tmp")

@@ -1,8 +1,14 @@
 from ytbox.dependencies import get_ffmpeg_path, get_deno_path
 from pathlib import Path
 import json
+import sys
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def _get_base_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent
+
+BASE_DIR = _get_base_dir()
 CONFIG_FILE = BASE_DIR / "config.json"
 DEFAULT_DOWNLOAD_DIR = BASE_DIR / "downloads"
 

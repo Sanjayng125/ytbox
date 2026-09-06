@@ -34,7 +34,12 @@ def set_logger(info_fn, success_fn, error_fn):
 SYSTEM = platform.system()
 ARCH = platform.machine()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def _get_base_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent
+
+BASE_DIR = _get_base_dir()
 BIN_DIR = BASE_DIR / "bin"
 
 if SYSTEM == "Windows":
