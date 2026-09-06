@@ -13,6 +13,7 @@ HISTORY_FILE = _get_base_dir() / "data" / "history.json"
 MAX_HISTORY_ENTRIES = 200
 
 def _write_history_atomic(history):
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     temp_file = HISTORY_FILE.with_suffix(".json.tmp")
 
     with open(temp_file, "w", encoding="utf-8") as f:
@@ -30,13 +31,6 @@ def save_download(title, url, download_type):
     }
 
     history = get_history()
-
-    if HISTORY_FILE.exists():
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                history = json.load(f)
-        except json.decoder.JSONDecodeError:
-            history = []
 
     history.append(entry)
 
