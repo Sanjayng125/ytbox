@@ -1,0 +1,53 @@
+name: Build standalones
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: ytbox-windows
+          - os: ubuntu-latest
+            artifact: ytbox-linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e . pyinstaller
+
+      - name: Build
+        run: |
+          pyinstaller \
+            --onedir \
+            --name ytbox \
+            --hidden-import yt_dlp.extractor \
+            --collect-submodules yt_dlp \
+            ytbox/main.py
+
+      - name: Stage bin and data (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          New-Item -ItemType Directory -Force dist\ytbox\data
+        shell: pwsh
+
+      - name: Stage bin and data (Linux)
+        if: runner.os == 'Linux'
+        run: mkdir -p dist/ytbox/data
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/ytbox/
