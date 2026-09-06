@@ -4,23 +4,30 @@ A friendly, interactive command-line wrapper around [yt-dlp](https://github.com/
 
 ## Features
 
-- Download videos — pick video quality and audio bitrate separately, or grab video/audio only
-- Download playlists — best quality or a capped resolution, video or audio-only
-- Live progress bars for every stream, powered by Rich
-- Video & playlist info — views, likes, duration, available formats, and more, without downloading
-- Download history — every download logged locally, browsable and clearable
-- Configurable download location, saved between sessions
-- One-command updates for yt-dlp, FFmpeg, and Deno
-- Zero manual setup — FFmpeg and Deno are detected or auto-downloaded on first run
-- Cross-platform — Windows (x64/ARM64), Linux (x64/ARM64), and macOS (Intel/Apple Silicon)
+- **Download videos** — pick video quality and audio bitrate separately, or grab video/audio only
+- **Download playlists** — best quality or a capped resolution, video or audio-only
+- **Live progress bars** for every stream, powered by [Rich](https://rich.readthedocs.io/)
+- **Video & playlist info** — views, likes, duration, available formats, and more, without downloading
+- **Download history** — every download logged locally, browsable and clearable
+- **Configurable download location**, saved between sessions
+- **One-command updates** for yt-dlp, FFmpeg, and Deno
+- **Zero manual setup** — FFmpeg and Deno are detected or auto-downloaded on first run
+- **Cross-platform** — Windows (x64), Linux (x64/ARM64), and macOS (Intel/Apple Silicon)
 
 ## Installation
 
-### Requirements
+### Option 1: Standalone executable (recommended for users)
 
-- Python 3.10 or newer
+Download the latest release from [GitHub Releases](https://github.com/Sanjayng125/ytbox/releases):
 
-### Install with pip
+- **Windows**: `ytbox-windows.zip` — extract and run `ytbox.exe`
+- **Linux**: `ytbox-linux.zip` — extract, run `chmod +x ytbox`, then `./ytbox`
+
+On first run, YTBox automatically downloads FFmpeg and Deno if needed — no manual setup required.
+
+### Option 2: Install from source with pip
+
+**Requirements**: Python 3.10+
 
 ```bash
 git clone https://github.com/Sanjayng125/ytbox.git
@@ -28,28 +35,39 @@ cd ytbox
 pip install .
 ```
 
-Then run it from anywhere:
+Then run from anywhere:
 
 ```bash
 ytbox
 ```
 
-### Recommended: install with pipx
+### Option 3: Install with pipx (isolated, recommended for developers)
 
-Keeps YTBox isolated from your other Python projects while still exposing the `ytbox` command globally:
+Keeps YTBox isolated from your other Python projects:
 
 ```bash
+git clone https://github.com/Sanjayng125/ytbox.git
+cd ytbox
 pipx install .
 ```
 
-### For development
-
-If you're modifying the code and want changes to take effect immediately:
+Then:
 
 ```bash
+ytbox
+```
+
+### Option 4: Development mode
+
+If you're modifying the code:
+
+```bash
+git clone https://github.com/Sanjayng125/ytbox.git
+cd ytbox
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e .
+ytbox
 ```
 
 ## Usage
@@ -60,9 +78,9 @@ Just run:
 ytbox
 ```
 
-...and follow the interactive menu. On first run, YTBox will automatically detect or download FFmpeg and Deno into a local `bin/` folder — no manual installation needed.
+Follow the interactive menu to download videos, playlists, or view information.
 
-Check for updates to yt-dlp, FFmpeg, and Deno at any time:
+Check for updates to yt-dlp, FFmpeg, and Deno:
 
 ```bash
 ytbox update
@@ -70,29 +88,59 @@ ytbox update
 
 ## How it works
 
-- Video/audio extraction & downloading is handled by yt-dlp.
-- FFmpeg merges separate video/audio streams and converts audio formats.
-- Deno is used by yt-dlp to solve YouTube's JS-based playback challenges when needed (optional — skipped automatically on platforms without an official Deno build).
-- Dependencies are downloaded into a local `bin/` folder next to the app the first time they're needed, and can be updated later via the in-app Update menu.
+- **yt-dlp** extracts video/audio metadata and downloads streams
+- **FFmpeg** merges separate video/audio streams and converts audio formats (MP3, etc.)
+- **Deno** (optional) helps yt-dlp bypass YouTube's JS-based playback challenges; auto-skipped on platforms without an official build
+- **Dependencies** are downloaded into a local `bin/` folder next to the app on first run, and can be updated anytime via the Update menu
 
 ## Platform support
 
-| Platform | Architecture          | Status                                                             |
-| -------- | --------------------- | ------------------------------------------------------------------ |
-| Windows  | x64                   | Fully supported                                                    |
-| Windows  | ARM64                 | Supported (FFmpeg only — Deno has no official ARM64 Windows build) |
-| Linux    | x64 / ARM64           | Fully supported                                                    |
-| macOS    | Intel / Apple Silicon | Supported                                                          |
+| Platform | Architecture  | Status                           |
+| -------- | ------------- | -------------------------------- |
+| Windows  | x64           | ✓ Fully supported                |
+| Windows  | ARM64         | ⚠ FFmpeg only (Deno unavailable) |
+| Linux    | x64           | ✓ Fully supported                |
+| Linux    | ARM64         | ✓ Fully supported                |
+| macOS    | Intel (x64)   | ✓ Fully supported                |
+| macOS    | Apple Silicon | ✓ Fully supported                |
 
-> Note: On some platforms, certain video resolutions are only available via HLS streaming. These download correctly but won't show a live progress bar (the bar will jump straight to 100% when done) — this is a limitation of how FFmpeg handles HLS downloads internally, not a bug. The quality menu flags these options for you upfront.
+> **Note on HLS streams**: Some video resolutions are only available via HLS streaming. These download correctly but won't show a live progress bar (it jumps to 100% when done) — this is a limitation of how FFmpeg handles HLS internally, not a bug. The quality menu flags these with "no live progress bar" so you know upfront.
 
 ## Configuration
 
-Download location and other settings are saved to `config.json` in the project directory and persist between runs. Change it anytime via Settings in the main menu.
+Download location and other settings are saved to `data/config.json` and persist between runs. Change them anytime via **Settings** in the main menu.
 
 ## Download history
 
-Every completed download is logged to `history.json`, viewable and clearable from the Download history menu.
+Every completed download is logged to `data/history.json`, viewable and clearable from the **Download history** menu.
+
+## Building standalone executables
+
+If you want to build your own standalones:
+
+```bash
+pip install pyinstaller
+pyinstaller \
+  --onedir \
+  --name ytbox \
+  --hidden-import yt_dlp.extractor \
+  --collect-submodules yt_dlp \
+  ytbox/main.py
+```
+
+Then grab `bin/` and `data/` from the repo and copy them next to the exe:
+
+```bash
+# Windows (PowerShell)
+Copy-Item -Recurse bin dist\ytbox\bin
+New-Item -ItemType Directory -Force dist\ytbox\data
+
+# Linux/macOS
+cp -r bin dist/ytbox/bin
+mkdir -p dist/ytbox/data
+```
+
+The result in `dist/ytbox/` is your portable distributable.
 
 ## Contributing
 
