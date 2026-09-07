@@ -9,6 +9,7 @@ import subprocess
 import sys
 import stat
 from packaging.version import Version
+from yt_dlp.version import __version__ as YTDLP_VERSION
 import json
 
 def _default_info(msg):
@@ -265,34 +266,16 @@ def install_deno():
 # ------------------------------------------------- yt-dlp -------------------------------------------------
 
 def get_ytdlp_version():
-    try:
-        result = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "--version"],
-            capture_output=True,
-            text=True
-        )
-
-        return result.stdout.strip()
-    except (subprocess.SubprocessError, OSError):
-        _log_error("yt-dlp version fetch failed!.")
-        return None
+    return YTDLP_VERSION
 
 def get_latest_ytdlp_version():
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "index", "versions", "yt-dlp"],
-        capture_output=True,
-        text=True
-    )
+    try:
+        with urllib.request.urlopen("https://pypi.org/pypi/yt-dlp/json") as response:
+            data = json.load(response)
 
-    if result.returncode != 0:
+        return data.get("info", {}).get("version")
+    except (urllib.error.URLError, json.JSONDecodeError):
         return None
-
-    for line in result.stdout.splitlines():
-        if line.startswith("Available versions:"):
-            versions = line.split(":", 1)[1].strip()
-            return versions.split(",")[0].strip()
-
-    return None
 
 def is_ytdlp_update_available(installed=None, latest=None):
     if installed is None:
@@ -307,6 +290,9 @@ def is_ytdlp_update_available(installed=None, latest=None):
     return Version(latest) > Version(installed)
 
 def update_ytdlp():
+    if getattr(sys, "frozen", False):
+        return False
+
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
         text=True
