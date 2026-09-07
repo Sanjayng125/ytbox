@@ -11,6 +11,7 @@
 - **bin/** — FFmpeg and Deno binaries (auto-downloaded on first run if missing)
 - **data/** — your config and download history (auto-created on first run)
 - **downloads/** — default location for saved videos (change in Settings menu)
+- **\_internal/** — bundled application files required for YTBox to run; do not delete or modify
 
 ## First Run
 
