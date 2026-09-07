@@ -3,6 +3,7 @@ from datetime import datetime
 from ytbox.json_utils import write_json_atomic
 from ytbox.ui import show_history_table, show_history_menu, show_success, show_error
 from ytbox.paths import get_base_dir
+from rich.prompt import IntPrompt
 
 HISTORY_FILE = get_base_dir() / "data" / "history.json"
 MAX_HISTORY_ENTRIES = 200
@@ -45,14 +46,14 @@ def show_history():
         show_history_menu()
 
         try:
-            choice = input("Choose an option: ").strip()
+            choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-            if choice == "1":
+            if choice == 1:
                 clear_history()
                 show_success("History cleared.")
                 return
 
-            elif choice == "2":
+            elif choice == 2:
                 return
 
             else:

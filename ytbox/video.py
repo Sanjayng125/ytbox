@@ -24,18 +24,20 @@ from ytbox.ui import (
 )
 from rich.status import Status
 from rich.console import Console
+from rich.prompt import Prompt
+from rich.panel import Panel
 console = Console()
 
 def show_video_information():
     try:
-        url = input("Enter YouTube URL: ")
+        url = Prompt.ask("[bold cyan]Enter YouTube URL[/bold cyan]").strip()
 
         try:
             with Status("[bold yellow]Fetching Video Information…[/bold yellow]", console=console):
                 info = get_video_info(url)
         except RuntimeError as e:
             print()
-            print(f"Error: {e}")
+            console.print(Panel(f"[bold red]✗ {e}[/bold red]", border_style="red", padding=(0,2), expand=False))
             return
 
         video_formats, audio_formats = get_format_summary(info)
@@ -52,19 +54,19 @@ def show_video_information():
 
 def download_video_menu():
     try:
-        url = input("Enter YouTube URL: ")
+        url = Prompt.ask("[bold cyan]Enter YouTube URL[/bold cyan]").strip()
 
         try:
             with Status("[bold yellow]Extracting Video Information…[/bold yellow]", console=console):
                 info = get_video_info(url)
         except RuntimeError as e:
             print()
-            print(f"Error: {e}")
+            console.print(Panel(f"[bold red]✗ {e}[/bold red]", border_style="red", padding=(0,2), expand=False))
             return
 
         mode = choose_download_mode()
 
-        if mode == "1":
+        if mode == 1:
             qualities = get_available_qualities(info)
             video_format = choose_quality(qualities)
 
@@ -80,7 +82,7 @@ def download_video_menu():
                 audio_format
             )
 
-        elif mode == "2":
+        elif mode == 2:
             qualities = get_available_qualities(info)
             video_format = choose_quality(qualities)
 
@@ -92,7 +94,7 @@ def download_video_menu():
                 video_format
             )
 
-        elif mode == "3":
+        elif mode == 3:
             audio_formats = get_available_audio(info)
             audio_format = choose_audio(audio_formats)
 
@@ -105,8 +107,14 @@ def download_video_menu():
             )
 
         print()
-        show_success("Download complete!")
-        show_success(f"Saved to: {output_path}")
+        console.print(
+            Panel(
+                f"[bold green]✓ Download complete![/bold green]\n[white]{output_path}[/white]",
+                border_style="green",
+                padding=(0, 2),
+                expand=False,
+            )
+        )
 
     except KeyboardInterrupt:
         cleanup_partial_downloads()
@@ -115,5 +123,5 @@ def download_video_menu():
 
     except RuntimeError as e:
         print()
-        print(f"Error: {e}")
+        console.print(Panel(f"[bold red]✗ {e}[/bold red]", border_style="red", padding=(0,2), expand=False))
         return

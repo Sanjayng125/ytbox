@@ -1,5 +1,6 @@
 import yt_dlp
 import ytbox.config as config
+from rich.prompt import IntPrompt
 from ytbox.config import get_ytdlp_options
 from ytbox.utils import (
     make_playlist_progress_hook,
@@ -38,20 +39,20 @@ def choose_playlist_quality():
     show_playlist_quality_menu()
 
     choices = {
-        "1": 144,
-        "2": 240,
-        "3": 360,
-        "4": 480,
-        "5": 720,
-        "6": 1080,
-        "7": 1440,
-        "8": 2160,
+        1: 144,
+        2: 240,
+        3: 360,
+        4: 480,
+        5: 720,
+        6: 1080,
+        7: 1440,
+        8: 2160,
     }
 
     while True:
-        choice = input("Choose an option: ").strip()
+        choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-        if choice == "9":
+        if choice == 9:
             return None
 
         if choice in choices:
@@ -63,17 +64,17 @@ def choose_playlist_audio_quality():
     show_playlist_audio_quality_menu()
 
     choices = {
-        "1": "320",
-        "2": "256",
-        "3": "192",
-        "4": "128",
-        "5": "96",
+        1: "320",
+        2: "256",
+        3: "192",
+        4: "128",
+        5: "96",
     }
 
     while True:
-        choice = input("Choose an option: ").strip()
+        choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-        if choice == "6":
+        if choice == 6:
             return None
 
         if choice in choices:
@@ -113,7 +114,7 @@ def download_playlist(url, quality=None, info=None):
     total_videos = len(entries)
 
     overall_task = add_progress_task(
-        f"[bold]Playlist — 0 / {total_videos} videos[/bold]",
+        f"[bold]Playlist ({total_videos} videos)[/bold]",
         total=total_videos,
     )
 

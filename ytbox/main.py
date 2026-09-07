@@ -1,3 +1,5 @@
+import argparse
+from rich.prompt import IntPrompt
 from ytbox.dependencies import ensure_dependencies
 from ytbox.video import (
     download_video_menu,
@@ -13,7 +15,6 @@ from ytbox.application import (
     settings
 )
 from ytbox.history import show_history
-import argparse
 from ytbox.ui import (
     show_info,
     show_error,
@@ -51,30 +52,30 @@ def interactive_mode():
         try:
             show_menu()
 
-            choice = input("Choose an option: ")
+            choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-            if choice == "1":
+            if choice == 1:
                 download_video_menu()
 
-            elif choice == "2":
+            elif choice == 2:
                 download_playlist_menu()
 
-            elif choice == "3":
+            elif choice == 3:
                 show_video_information()
 
-            elif choice == "4":
+            elif choice == 4:
                 show_playlist_information()
 
-            elif choice == "5":
+            elif choice == 5:
                 settings()
 
-            elif choice == "6":
+            elif choice == 6:
                 update()
 
-            elif choice == "7":
+            elif choice == 7:
                 show_history()
 
-            elif choice == "8":
+            elif choice == 8:
                 show_info("Goodbye!")
                 break
 

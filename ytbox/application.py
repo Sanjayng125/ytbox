@@ -24,6 +24,7 @@ from ytbox.ui import (
 )
 from rich.status import Status
 from rich.console import Console
+from rich.prompt import Confirm, Prompt, IntPrompt
 console = Console()
 
 def show_menu():
@@ -34,13 +35,13 @@ def settings():
         while True:
             show_settings_menu()
 
-            choice = input("Choose an option: ")
+            choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-            if choice == "1":
+            if choice == 1:
                 show_download_location(config.DOWNLOAD_DIR)
 
-                new_path = input(
-                    "Enter new download location: "
+                new_path = Prompt.ask(
+                    "[bold cyan]Enter new download location: [/bold cyan]"
                 ).strip()
 
                 if not new_path:
@@ -57,7 +58,7 @@ def settings():
                 show_success("Download location updated!")
                 show_download_location(config.DOWNLOAD_DIR)
 
-            elif choice == "2":
+            elif choice == 2:
                 return
 
             else:
@@ -131,9 +132,7 @@ def update():
             return
 
         print()
-        choice = input("Update now? (y/n): ").strip().lower()
-
-        if choice != "y":
+        if not Confirm.ask("[bold yellow]Update now?[/bold yellow]"):
             show_info("Update cancelled.")
             return
 

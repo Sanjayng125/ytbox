@@ -17,10 +17,12 @@ from ytbox.ui import (
 )
 from rich.status import Status
 from rich.console import Console
+from rich.prompt import Prompt, IntPrompt
+from rich.panel import Panel
 console = Console()
 
 def show_playlist_information():
-    url = input("Enter playlist URL: ").strip()
+    url = Prompt.ask("[bold cyan]Enter Playlist URL[/bold cyan]").strip()
 
     if not url:
         show_info("Please enter a playlist URL.")
@@ -47,25 +49,29 @@ def show_playlist_information():
         )
 
     except RuntimeError as e:
-        print(f"Error: {e}")
+        console.print(Panel(f"[bold red]✗ {e}[/bold red]", border_style="red", padding=(0,2), expand=False))
 
 def _video_flow(url, info):
     show_playlist_quality_options("Video")
-    quality_choice = input("Choose an option: ").strip()
+    quality_choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-    if quality_choice == "3":
+    if quality_choice == 3:
         return
-    elif quality_choice == "1":
+    elif quality_choice == 1:
         try:
+            show_info("Downloading...")
+            
             download_playlist(url, info=info)
         except KeyboardInterrupt:
             cleanup_partial_downloads()
             show_info("\nDownload cancelled.")
-    elif quality_choice == "2":
+    elif quality_choice == 2:
         quality = choose_playlist_quality()
         if quality is None:
             return
         try:
+            show_info("Downloading...")
+            
             download_playlist(url, quality, info)
         except KeyboardInterrupt:
             cleanup_partial_downloads()
@@ -76,21 +82,25 @@ def _video_flow(url, info):
 
 def _audio_flow(url, info):
     show_playlist_quality_options("Audio")
-    quality_choice = input("Choose an option: ").strip()
+    quality_choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-    if quality_choice == "3":
+    if quality_choice == 3:
         return
-    elif quality_choice == "1":
+    elif quality_choice == 1:
         try:
+            show_info("Downloading...")
+            
             download_playlist_audio(url, info=info)
         except KeyboardInterrupt:
             cleanup_partial_downloads()
             show_info("\nDownload cancelled.")
-    elif quality_choice == "2":
+    elif quality_choice == 2:
         quality = choose_playlist_audio_quality()
         if quality is None:
             return
         try:
+            show_info("Downloading...")
+            
             download_playlist_audio(url, quality, info)
         except KeyboardInterrupt:
             cleanup_partial_downloads()
@@ -99,14 +109,13 @@ def _audio_flow(url, info):
         show_error("Invalid option.")
 
 def download_playlist_menu():
-    url = input("Enter playlist URL: ").strip()
+    url = Prompt.ask("[bold cyan]Enter Playlist URL[/bold cyan]").strip()
 
     if not url:
         show_info("Please enter a playlist URL.")
         return
 
     try:
-        show_info("Extracting Playlist Information...")
         with Status("[bold yellow]Extracting Playlist Information…[/bold yellow]", console=console):
             info = get_playlist_info(url)
 
@@ -116,18 +125,18 @@ def download_playlist_menu():
         show_playlist_download_info(title, len(entries))
 
         show_playlist_download_options()
-        choice = input("Choose an option: ").strip()
+        choice = IntPrompt.ask("[bold cyan]Choose an option[/bold cyan]")
 
-        if choice == "1":
+        if choice == 1:
             _video_flow(url, info)
-        elif choice == "2":
+        elif choice == 2:
             _audio_flow(url, info)
-        elif choice == "3":
+        elif choice == 3:
             return
         else:
             show_error("Invalid option.")
 
     except RuntimeError as e:
-        print(f"Error: {e}")
+        console.print(Panel(f"[bold red]✗ {e}[/bold red]", border_style="red", padding=(0,2), expand=False))
 
 

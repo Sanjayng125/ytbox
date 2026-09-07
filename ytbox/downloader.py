@@ -3,14 +3,15 @@ from ytbox.ui import (
     show_download_mode_menu,
     show_error
 )
+from rich.prompt import IntPrompt
 
 def choose_download_mode():
     show_download_mode_menu()
 
     while True:
-        choice = input("Choose mode: ")
+        choice = IntPrompt.ask("[bold cyan]Choose mode[/bold cyan]")
 
-        if choice in ("1", "2", "3"):
+        if choice in (1, 2, 3):
             return choice
 
         show_error("Invalid choice. Try again.")

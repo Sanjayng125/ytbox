@@ -160,6 +160,8 @@ def download_video(info, video_format, audio_format):
     video_size = video_format.get("filesize") or video_format.get("filesize_approx")
     audio_size = audio_format.get("filesize") or audio_format.get("filesize_approx")
 
+    show_info(f"Selected format: {options["format"]}")
+
     start_progress()
 
     video_task_id = add_progress_task(f"{title} | Video", total=video_size)
@@ -176,8 +178,6 @@ def download_video(info, video_format, audio_format):
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            show_info(f"Selected format: {options["format"]}")
-
             ydl.download([info["webpage_url"]])
 
             filename = ydl.prepare_filename(info)

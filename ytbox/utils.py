@@ -1,4 +1,5 @@
 import yt_dlp
+from rich.prompt import IntPrompt
 from ytbox.config import get_ytdlp_options
 from rich.progress import (
     Progress,
@@ -63,12 +64,13 @@ def format_live_status(status):
 
 def choose_from_menu(items, prompt, display_fn, error_fn):
     display_fn(items)
+
     while True:
-        choice = input(prompt)
-        if choice.isdigit():
-            idx = int(choice)
-            if 1 <= idx <= len(items):
-                return items[idx - 1]
+        choice = IntPrompt.ask(f"[bold cyan]{prompt}[/bold cyan]")
+
+        if 1 <= choice <= len(items):
+            return items[choice - 1]
+
         error_fn("Invalid choice. Try again.")
 
 def get_format_summary(info):
