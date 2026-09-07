@@ -69,32 +69,32 @@ jobs:
           path: ${{ matrix.artifact }}.zip
 
   release:
-  needs: build
-  runs-on: ubuntu-latest
-  if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
 
-  steps:
-    - name: Download Windows artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ytbox-windows-package
-        path: windows-download
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ytbox-windows-package
+          path: windows-download
 
-    - name: Prepare Windows release asset
-      run: mv windows-download/ytbox-windows.zip ytbox-windows.zip
+      - name: Prepare Windows release asset
+        run: mv windows-download/ytbox-windows.zip ytbox-windows.zip
 
-    - name: Download Linux artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ytbox-linux-package
-        path: linux-download
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ytbox-linux-package
+          path: linux-download
 
-    - name: Prepare Linux release asset
-      run: mv linux-download/ytbox-linux.zip ytbox-linux.zip
+      - name: Prepare Linux release asset
+        run: mv linux-download/ytbox-linux.zip ytbox-linux.zip
 
-    - name: Create Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "ytbox-windows.zip,ytbox-linux.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
-        generateReleaseNotes: true
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "ytbox-windows.zip,ytbox-linux.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
