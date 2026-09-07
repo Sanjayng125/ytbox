@@ -1,17 +1,12 @@
-from ytbox.dependencies import get_ffmpeg_path, get_deno_path
-from pathlib import Path
 import json
-import sys
+from pathlib import Path
+from ytbox.dependencies import get_ffmpeg_path, get_deno_path
+from ytbox.json_utils import write_json_atomic
+from ytbox.paths import get_base_dir
 
-def _get_base_dir():
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
-    return Path(__file__).resolve().parent.parent
-
-BASE_DIR = _get_base_dir()
-CONFIG_FILE = BASE_DIR / "config.json"
+BASE_DIR = get_base_dir()
+CONFIG_FILE = BASE_DIR / "data" / "config.json"
 DEFAULT_DOWNLOAD_DIR = BASE_DIR / "downloads"
-
 
 def load_config():
     if not CONFIG_FILE.exists():
@@ -21,13 +16,13 @@ def load_config():
         with open(CONFIG_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
     except (OSError, json.JSONDecodeError):
+        write_json_atomic(CONFIG_FILE, {})
         return {}
 
 
 def save_config(config):
     try:
-        with open(CONFIG_FILE, "w", encoding="utf-8") as file:
-            json.dump(config, file, indent=4)
+        write_json_atomic(CONFIG_FILE, config)
     except OSError as e:
         raise RuntimeError("Could not save configuration.") from e
 

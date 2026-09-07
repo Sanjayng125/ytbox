@@ -1,26 +1,11 @@
 import json
-from pathlib import Path
 from datetime import datetime
+from ytbox.json_utils import write_json_atomic
 from ytbox.ui import show_history_table, show_history_menu, show_success, show_error
-import sys
+from ytbox.paths import get_base_dir
 
-def _get_base_dir():
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
-    return Path(__file__).resolve().parent.parent
-
-HISTORY_FILE = _get_base_dir() / "data" / "history.json"
+HISTORY_FILE = get_base_dir() / "data" / "history.json"
 MAX_HISTORY_ENTRIES = 200
-
-def _write_history_atomic(history):
-    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    temp_file = HISTORY_FILE.with_suffix(".json.tmp")
-
-    with open(temp_file, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=4)
-
-    temp_file.replace(HISTORY_FILE)  # atomic on both Windows and POSIX
-
 
 def save_download(title, url, download_type):
     entry = {
@@ -37,7 +22,7 @@ def save_download(title, url, download_type):
     if len(history) > MAX_HISTORY_ENTRIES:
         history = history[-MAX_HISTORY_ENTRIES:]
 
-    _write_history_atomic(history)
+    write_json_atomic(HISTORY_FILE, history)
 
 
 def get_history():
@@ -48,7 +33,7 @@ def get_history():
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
-        _write_history_atomic([])
+        write_json_atomic(HISTORY_FILE, [])
         return []
 
 
@@ -78,4 +63,4 @@ def show_history():
 
 
 def clear_history():
-    _write_history_atomic([])
+    write_json_atomic(HISTORY_FILE, [])

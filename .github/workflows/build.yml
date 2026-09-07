@@ -43,15 +43,14 @@ jobs:
             --collect-submodules yt_dlp \
             ytbox/main.py
 
-      - name: Stage bin and data (Windows)
+      - name: Add README to bundle (Windows)
         if: runner.os == 'Windows'
-        run: |
-          New-Item -ItemType Directory -Force dist\ytbox\data
+        run: Copy-Item ./standalone-readmes/WINDOWS_README.md dist\ytbox\README.md
         shell: pwsh
 
-      - name: Stage bin and data (Linux)
+      - name: Add README to bundle (Linux)
         if: runner.os == 'Linux'
-        run: mkdir -p dist/ytbox/data
+        run: cp ./standalone-readmes/LINUX_README.md dist/ytbox/README.md
 
       - uses: actions/upload-artifact@v4
         with:
